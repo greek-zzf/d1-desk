@@ -1,0 +1,26 @@
+{
+  "name": "d1-desk",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8788",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "wrangler": "^4.34.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ]
+  },
+  "dependencies": {
+    "ai": "^7.0.97",
+    "postal-mime": "^3.0.0",
+    "workers-ai-provider": "^4.0.0",
+    "zod": "^4.6.2"
+  }
+}

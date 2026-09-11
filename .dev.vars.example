@@ -1,0 +1,3 @@
+# Cookie signing secret. Any long random string is fine.
+# openssl rand -base64 32
+AUTH_SECRET=replace-me-with-a-long-random-string

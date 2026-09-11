@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "d1-desk",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "a5256c98cf896fab67b402951c596dc8",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 }
+  },
+  "vars": {
+    "DOMAINS": "",
+    "EMAIL_ADDRESSES": ""
+  },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "remote": true
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "MAIL",
+      "database_name": "d1-desk-mail",
+      "database_id": "87b0ba15-7339-4371-941f-2ecf35136cf3"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MAIL_BUCKET",
+      "bucket_name": "d1-desk-mail"
+    },
+    {
+      "binding": "OLD_MAIL_BUCKET",
+      "bucket_name": "agentic-inbox"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "OLD_MAILBOX",
+        "class_name": "MailboxDO",
+        "script_name": "agentic-inbox"
+      }
+    ]
+  },
+  "ai": {
+    "binding": "AI",
+    "remote": true
+  }
+}
