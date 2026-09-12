@@ -1,0 +1,17 @@
+Landscape 16:9 full-bleed desktop UI mockup — first viewport of D1 Desk Chinese login as a nixie-tube laboratory counter. Entire frame is one blackened-steel instrument chassis filling the screen; no browser chrome, no floating SaaS cards, no purple gradients, no cream paper look.
+
+PALETTE (strict):
+- Chassis / deep ground #0d0d0f
+- Nixie orange glow / primary accent #ff6a00
+- Panel face / recessed steel #2a2c33
+- Engraved secondary legends #9aa0a8
+
+COMPOSITION (prompt by surface structure, scale relationships):
+1) OUTER CHASSIS (full frame): blackened steel laboratory counter panel with engraved screw heads, brushed recesses, matte instrument bezel — full-bleed machine face, not a photo of a desk.
+2) TOP BRAND RAIL (hero scale): large engraved metal legend 「D1 Desk」 with small secondary 「LEDGER」 and short Chinese line 「账号级工作台」 in #9aa0a8 — brand is the dominant first signal.
+3) SESSION STATUS NIXIE BANK (upper-mid, secondary scale): a short row of glass nixie envelopes showing orange (#ff6a00) glowing digits that read as session-ready / armed status — warm glass tubes, wire grids, soft orange bloom on the steel; status display only, not the input.
+4) TOKEN SLOT FIELD (central operable region, largest interactive mass): recessed engraved slot labeled 「Token」 / 「粘贴 Cloudflare API Token」 — dark inset paste field on steel, clear and readable; below it a permission tip in smaller engraved/screen type: 「Token 权限需含 D1、Workers、Workers KV、Email Routing / Email Sending」 plus readable text link 「创建 Token」. Token stays a panel slot, never a counting display.
+5) FOUR CAPABILITY TUBE BANKS (lower mid, equal secondary row): four labeled nixie/tube banks engraved 「D1」「KV」「Workers」「邮件」 — glass envelopes with restrained orange glow, engraved caps, equal weight; inventory of the four account surfaces, quieter than the Token slot so input stays primary.
+6) PRIMARY CTA (bottom of operable stack): large engraved steel button or illuminated orange-rimmed control reading exactly 「进入工作台」 — #ff6a00 accent rim or fill so it is the obvious primary action.
+
+Materials: blackened steel, glass nixie envelopes, engraved metal caps, warm orange neon glow only inside tubes and CTA accent. High-fidelity finished north-star product mock, landscape desktop, Chinese primary UI copy. Real product name D1 Desk only. No invented company names, prices, benchmarks, dates, or commercial claims. Token field and 进入工作台 must remain operable and obvious; tube banks must not overpower the input.

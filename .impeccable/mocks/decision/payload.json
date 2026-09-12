@@ -1,0 +1,146 @@
+{
+  "title": "选择登录页的视觉世界",
+  "question": "掷骰结果是「规格说明书封面」。保留它、选备选，或重掷。",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "规格说明书封面",
+      "kicker": "THE ROLL",
+      "lineage": "Swiss technical documentation covers",
+      "thesis": "登录页就是一份规格封面：标题说清产品，摘要列出四件事，凭证栏就是入口。",
+      "palette": ["#f4f2ec", "#12141a", "#c41230", "#6b7280"],
+      "materials": ["coated paper stock", "ruled column grid", "flat ink"],
+      "viewport": "整屏说明书页：顶栏规格号与 LEDGER，巨字 D1 Desk，一行摘要点名 D1/KV/Workers/邮件，下方凭证栏贴 Token，底栏「进入工作台」。",
+      "risk": "若缩成居中小卡片，会立刻退回通用 SaaS 登录。",
+      "raised": [
+        {
+          "from": "challenger-cracktro",
+          "raise": "整屏是一张连续纸面，不做居中浮卡。"
+        },
+        {
+          "from": "challenger-cyclorama",
+          "raise": "空闲 / 校验中 / 错误 / 选账号用命名状态，不只靠颜色。"
+        },
+        {
+          "from": "challenger-wpa",
+          "raise": "底栏只留一个祈使动作：进入工作台。"
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "SQL 客户端连接表",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "desktop SQL client connection sheets",
+      "thesis": "把贴 Token 做成连库对话框：字段、权限、连接按钮一目了然。",
+      "palette": ["#1c1f26", "#e8eaef", "#3d7eff", "#9aa3b2"],
+      "materials": ["app chrome", "dense field stack", "status strip"],
+      "viewport": "桌面连接表占屏：Host 隐喻换成 Cloudflare 账号，Password 换成 API Token，旁注权限与创建链接，Connect = 进入工作台。",
+      "risk": "也是这类工具登录页最常落到的熟悉方向。",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "challenger-terminal",
+      "label": "磷光终端会话门",
+      "verdict": "wins",
+      "lineage": "green-phosphor terminal midnight",
+      "thesis": "会话从一行提示开始：粘贴 Token，回车进工作台。",
+      "palette": ["#050805", "#33ff66", "#1a3d24", "#9dffb0"],
+      "materials": ["curved glass", "scanline glow", "bitmap mono"],
+      "viewport": "近黑玻璃全屏 transcript：D1 Desk 启动行，四能力状态行，光标旁 password 域贴 Token，最后一行「进入工作台」。",
+      "case": "开发者认同与「贴 Token 就进」的清晰度都压过说明书封面。",
+      "risk": "复古趣味压过任务时会像玩具终端。",
+      "comp": ".impeccable/mocks/decision/challenger-terminal.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-phosphor-terminal-midnight-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-phosphor-terminal-midnight.webp"
+    },
+    {
+      "id": "challenger-transit",
+      "label": "午夜线路图",
+      "verdict": "competitive",
+      "lineage": "midnight transit diagram mural",
+      "thesis": "四条线路在 Token 换乘站汇合：D1、KV、Workers、邮件。",
+      "palette": ["#0b1c3a", "#f4f7fb", "#e11d48", "#2563eb", "#f59e0b", "#10b981"],
+      "materials": ["enamel blue ground", "porcelain ticks", "45° route lines"],
+      "viewport": "深蓝瓷釉全屏图：四色线交汇于中央 Token 站，站名旁是粘贴框与进入动作。",
+      "case": "四能力的空间记忆强，但主操作易被图面抢走。",
+      "risk": "图面密度压过表单时会看不清该贴什么。",
+      "comp": ".impeccable/mocks/decision/challenger-transit.webp",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram.webp"
+    },
+    {
+      "id": "challenger-streetwear",
+      "label": "工业引用语法",
+      "verdict": "competitive",
+      "lineage": "industrial quote streetwear grammar",
+      "thesis": "每个区用直引号直呼其名：「TOKEN」「D1」「KV」「WORKERS」「MAIL」。",
+      "palette": ["#f5f5f5", "#111111", "#ff5a1f"],
+      "materials": ["cotton/nylon", "hazard diagonals", "zip-tie tags"],
+      "viewport": "白地黑字全屏标签板：主标题「D1 DESK」，斜纹压在 Token 栏下，橙绑带标出主按钮。",
+      "case": "字面标签让能力清单极清，但对 CF 开发者的场景认同偏弱。",
+      "risk": "时装语汇压过工具语汇时会像潮牌 landing。",
+      "comp": ".impeccable/mocks/decision/challenger-streetwear.webp",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-industrial-quote-grammar-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-industrial-quote-grammar.webp"
+    },
+    {
+      "id": "challenger-wpa",
+      "label": "WPA 公园海报",
+      "verdict": "declined",
+      "lineage": "WPA national-park travel poster",
+      "thesis": "风景平面下一条祈使：进入工作台。",
+      "palette": ["#2a6f6f", "#3d5a3a", "#c4a35a", "#f3ecd8"],
+      "materials": ["silkscreen planes", "cream stock"],
+      "case": "场景认同与贴密文清晰度都弱。",
+      "kept": "底栏单一祈使动作。",
+      "hero": "https://impeccable.style/worlds/cards/posters-covers-sleeves-wpa-park-poster-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/posters-covers-sleeves-wpa-park-poster.webp"
+    },
+    {
+      "id": "challenger-cracktro",
+      "label": "Cracktro 队列",
+      "verdict": "declined",
+      "lineage": "cracktro title-screen scroller",
+      "thesis": "黑虚空上一条象牙基线承载 Token 输入。",
+      "palette": ["#000000", "#e8e4d9", "#ffb000", "#6e6a63"],
+      "materials": ["emissive void", "bitmap face", "dust drift"],
+      "case": "场景认同与能力清单清晰度都弱。",
+      "kept": "整屏环境承诺、拒绝浮卡围合。",
+      "hero": "https://impeccable.style/worlds/cards/operate-c-cracktro-scroller-queue-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/operate-c-cracktro-scroller-queue.webp"
+    },
+    {
+      "id": "challenger-cyclorama",
+      "label": "天幕黎明",
+      "verdict": "declined",
+      "lineage": "theater cyclorama dawn lighting",
+      "thesis": "用天幕相位表达登录状态。",
+      "palette": ["#05070c", "#1e3a8a", "#fb7185", "#f8fafc"],
+      "materials": ["depthless cyc", "horizon bands"],
+      "case": "氛围叙事压过贴 Token 任务。",
+      "kept": "命名状态相位，不只靠颜色。",
+      "hero": "https://impeccable.style/worlds/cards/stagecraft-theater-lighting-cyclorama-dawn-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/stagecraft-theater-lighting-cyclorama-dawn.webp"
+    }
+  ],
+  "reroll": {
+    "registers": ["safer", "bolder"]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "品类标准登录卡",
+    "thesis": "居中卡片、标志、表单、主按钮，把通用登录做到极致。",
+    "palette": ["#ffffff", "#111827", "#2563eb"],
+    "materials": ["soft card", "system sans", "flat fill"],
+    "viewport": "静谧底上的居中登录卡：Logo、Token 输入、进入工作台。",
+    "risk": "刻意与竞品同构，辨识度让位给熟悉。",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

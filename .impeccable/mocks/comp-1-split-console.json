@@ -1,0 +1,7 @@
+{
+  "name": "comp-1-split-console",
+  "title": "Split Edge Console (控制台分屏架构)",
+  "concept": "Left side system topology and zero-disk guarantee, right side interactive terminal window with token input and permission chips.",
+  "path": ".impeccable/mocks/comp-1-split-console.png",
+  "approved": true
+}

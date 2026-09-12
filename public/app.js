@@ -1,10 +1,13 @@
 import { loadMailRoute, mailView, parseMailHash, resetMail } from "./mail.js";
+import { kvView, loadKvRoute, parseKvHash, resetKv } from "./kv.js";
+import { loadWorkersRoute, parseWorkersHash, resetWorkers, workersView } from "./workers.js";
 
 const app = document.getElementById("app");
 
 const state = {
   session: null,
   loginToken: "",
+  showToken: false,
   accounts: null,
   accountId: "",
   error: "",
@@ -101,6 +104,8 @@ export function formatTime(iso) {
 function parseHash() {
   const raw = decodeURIComponent(location.hash.replace(/^#/, "") || "/");
   if (raw === "/mail" || raw.startsWith("/mail/")) return parseMailHash(raw);
+  if (raw === "/kv" || raw.startsWith("/kv/")) return parseKvHash(raw);
+  if (raw === "/workers" || raw.startsWith("/workers/")) return parseWorkersHash(raw);
   const db = raw.match(/^\/db\/([^/]+)(?:\/(.*))?$/);
   if (!db) return { page: "home" };
   const rest = db[2] || "";
@@ -335,6 +340,14 @@ async function route() {
       state.db = null;
       state.table = null;
       await loadMailRoute(loc);
+    } else if (loc.page === "kv") {
+      state.db = null;
+      state.table = null;
+      await loadKvRoute(loc);
+    } else if (loc.page === "workers") {
+      state.db = null;
+      state.table = null;
+      await loadWorkersRoute(loc);
     } else if (loc.page === "home") {
       state.db = null;
       state.table = null;
@@ -379,53 +392,269 @@ export async function withBusy(fn) {
   }
 }
 
+const ICONS = {
+  shield: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  storage: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="4" x2="12" y2="8"/></svg>`,
+  disk: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><line x1="7" y1="15" x2="7.01" y2="15" stroke-width="3"/><line x1="10" y1="15" x2="10.01" y2="15" stroke-width="3"/><line x1="17" y1="9" x2="7" y2="9"/></svg>`,
+  chip: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>`,
+  keyBig: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>`,
+  docBig: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  db: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
+  kv: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 8v8M8 12l4-4M8 12l4 4M15 8v8"/></svg>`,
+  workers: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg>`,
+  mail: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+  key: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3a39d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>`,
+  eye: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3a39d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeOff: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3a39d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`,
+  extLink: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`,
+  check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  arrowLeft: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`,
+  alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  spinner: `<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>`,
+  topoArrow: `<svg width="42" height="14" viewBox="0 0 42 14" fill="none"><line x1="0" y1="7" x2="36" y2="7" stroke="#d8f848" stroke-width="2"/><polyline points="30 2 37 7 30 12" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+};
+
 function loginView() {
-  const box = h("div", { class: "login" },
-    h("form", { class: "login-card", onSubmit: onLogin },
-      h("div", { class: "kicker" }, "Cloudflare D1"),
-      h("h1", {}, "D1 Desk"),
-      h("p", { class: "lede" }, "账号下所有 D1 数据库的工作台。浏览表、改数据、跑 SQL，不用再进 Cloudflare 控制台。"),
-      state.error ? h("div", { class: "err" }, state.error) : null,
-      state.accounts
-        ? h("div", { class: "field" },
-            h("label", {}, "选择账号"),
-            h(
-              "select",
-              {
-                onChange: (e) => { state.accountId = e.target.value; },
-              },
-              ...state.accounts.map((a) =>
-                h("option", { value: a.id, selected: a.id === state.accountId }, `${a.name}  ·  ${a.id.slice(0, 8)}`),
+  const isAccountSelect = Array.isArray(state.accounts) && state.accounts.length > 0;
+
+  return h("div", { class: "login-split-layout" },
+    // Left Stage: Architecture, System Topology, Zero-Disk Proofs
+    h("aside", { class: "console-panel" },
+      h("div", { class: "console-brand" },
+        h("h1", { class: "console-title" }, "D1 Desk"),
+        h("div", { class: "brand-tag" }, "LEDGER // v2.4"),
+      ),
+
+      // System Topology (Comp-led exact architecture)
+      h("div", { class: "topology-container" },
+        // Left node 1: API Token
+        h("div", { class: "topo-stage-node topo-token-node" },
+          h("div", { class: "stage-icon", html: ICONS.keyBig }),
+          h("div", { class: "stage-label" }, "API Token"),
+        ),
+        // Arrow 1
+        h("div", { class: "topo-stage-arrow", html: ICONS.topoArrow }),
+        // Left node 2: D1 Desk Worker
+        h("div", { class: "topo-stage-node topo-worker-node" },
+          h("div", { class: "stage-icon", html: ICONS.docBig }),
+          h("div", { class: "stage-label" }, "D1 Desk Worker"),
+        ),
+        // Branching SVG connector
+        h("svg", { class: "topo-branch-svg", viewBox: "0 0 80 200", fill: "none" },
+          h("path", { d: "M 0 100 L 25 100", stroke: "#d8f848", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 25 75 25", stroke: "#d8f848", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 75 75 75", stroke: "#d8f848", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 125 75 125", stroke: "#d8f848", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 175 75 175", stroke: "#d8f848", "stroke-width": "2" }),
+        ),
+        // Cloudflare Edge destination box
+        h("div", { class: "topo-cf-box" },
+          h("div", { class: "topo-cf-header" }, "Cloudflare Edge"),
+          h("div", { class: "topo-cf-items" },
+            h("div", { class: "topo-cf-item" },
+              h("span", { class: "cf-item-icon", html: ICONS.db }),
+              h("span", { class: "cf-item-text" }, "D1 (Database)"),
+            ),
+            h("div", { class: "topo-cf-item" },
+              h("span", { class: "cf-item-icon", html: ICONS.kv }),
+              h("span", { class: "cf-item-text" }, "KV (Key-Value)"),
+            ),
+            h("div", { class: "topo-cf-item" },
+              h("span", { class: "cf-item-icon", html: ICONS.workers }),
+              h("div", { class: "cf-item-col" },
+                h("span", { class: "cf-item-text" }, "Workers"),
+                h("span", { class: "cf-item-sub" }, "(Compute)"),
               ),
             ),
-          )
-        : h("div", { class: "field" },
-            h("label", { for: "token" }, "API Token"),
-            h("input", {
-              id: "token",
-              type: "password",
-              autocomplete: "off",
-              placeholder: "粘贴 Cloudflare API Token",
-              value: state.loginToken,
-              onInput: (e) => { state.loginToken = e.target.value; },
-            }),
-            h("div", { class: "hint" },
-              "需要 ", h("b", {}, "Account / D1 / Edit"), " 权限。",
-              h("a", { href: "https://dash.cloudflare.com/profile/api-tokens", target: "_blank", rel: "noreferrer" }, "去创建 Token"),
+            h("div", { class: "topo-cf-item" },
+              h("span", { class: "cf-item-icon", html: ICONS.mail }),
+              h("span", { class: "cf-item-text" }, "Mail (Email)"),
             ),
           ),
-      h("button", { class: "btn btn-primary btn-wide", type: "submit", disabled: state.busy }, state.busy ? "登录中…" : "进入工作台"),
+        ),
+      ),
+
+      // Security Guarantees Section
+      h("div", { class: "security-guarantees-card" },
+        h("div", { class: "sec-header" },
+          h("div", { class: "sec-title" }, "Zero-disk security guarantees"),
+          h("div", { class: "sec-icon", html: ICONS.shield }),
+        ),
+        h("div", { class: "sec-bullets" },
+          h("div", { class: "sec-bullet" },
+            h("span", { class: "bullet-text" }, "• Ephemeral Storage Only"),
+            h("span", { class: "bullet-icon", html: ICONS.storage }),
+          ),
+          h("div", { class: "sec-bullet" },
+            h("span", { class: "bullet-text" }, "• No Persistent Disk Reads/Writes"),
+            h("span", { class: "bullet-icon", html: ICONS.disk }),
+          ),
+          h("div", { class: "sec-bullet" },
+            h("span", { class: "bullet-text" }, "• In-Memory State Management"),
+            h("span", { class: "bullet-icon", html: ICONS.chip }),
+          ),
+        ),
+      ),
+    ),
+
+    // Right Stage: Interactive Terminal Gate
+    h("main", { class: "terminal-panel" },
+      h("div", { class: "terminal-window" },
+        h("div", { class: "terminal-chrome" },
+          h("div", { class: "chrome-dots" },
+            h("span", { class: "dot-red" }),
+            h("span", { class: "dot-yellow" }),
+            h("span", { class: "dot-green" }),
+          ),
+          h("div", { class: "chrome-title" }, "AUTH_GATE // CLOUDFLARE_PROVISION"),
+        ),
+
+        h("div", { class: "terminal-body" },
+          state.error
+            ? h("div", { class: "term-error", role: "alert" },
+                h("span", { class: "term-error-icon", html: ICONS.alert }),
+                h("div", { class: "term-error-body" },
+                  h("div", { class: "term-error-msg" }, state.error),
+                  h("div", { class: "term-error-desc" }, "请确认 API Token 未失效，且拥有对应资源 Edit 权限及 Account Settings Read 权限。"),
+                ),
+              )
+            : null,
+
+          isAccountSelect
+            ? h("div", { class: "account-matrix-view" },
+                h("div", { class: "matrix-head" },
+                  h("h2", { class: "matrix-title" }, `检测到 ${state.accounts.length} 个可用 Cloudflare 账号`),
+                  h("p", { class: "matrix-sub" }, "请选择本次会话载入的工作台账号："),
+                ),
+                h("div", { class: "matrix-list" },
+                  ...state.accounts.map((a) => {
+                    const isSelected = a.id === state.accountId;
+                    return h("div", {
+                      class: `matrix-card ${isSelected ? "selected" : ""}`,
+                      onClick: () => {
+                        state.accountId = a.id;
+                        render();
+                      },
+                    },
+                      h("div", { class: "matrix-card-left" },
+                        h("div", { class: "matrix-acc-name" }, a.name),
+                        h("div", { class: "matrix-acc-id" }, `ID: ${a.id}`),
+                      ),
+                      isSelected
+                        ? h("span", { class: "matrix-check-pill", html: ICONS.check })
+                        : h("span", { class: "matrix-uncheck" }),
+                    );
+                  }),
+                ),
+                h("div", { class: "terminal-actions" },
+                  h("button", {
+                    class: "btn btn-ghost",
+                    type: "button",
+                    disabled: state.busy,
+                    onClick: () => {
+                      state.accounts = null;
+                      state.accountId = "";
+                      state.error = "";
+                      render();
+                    },
+                  },
+                    h("span", { class: "btn-icon", html: ICONS.arrowLeft }),
+                    "更换 Token",
+                  ),
+                  h("button", {
+                    class: "btn btn-primary",
+                    type: "button",
+                    disabled: state.busy,
+                    onClick: onLogin,
+                  },
+                    state.busy
+                      ? [h("span", { class: "btn-icon", html: ICONS.spinner }), "进入中…"]
+                      : "进入选定账号工作台",
+                  ),
+                ),
+              )
+            : h("form", { class: "token-form", onSubmit: onLogin },
+                h("div", { class: "field-group" },
+                  h("div", { class: "field-label-bar" },
+                    h("label", { for: "token" }, "API token"),
+                  ),
+                  h("div", { class: "token-input-shell" },
+                    h("span", { class: "token-prefix-key", html: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0b2b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>` }),
+                    h("input", {
+                      id: "token",
+                      type: state.showToken ? "text" : "password",
+                      autocomplete: "off",
+                      spellcheck: "false",
+                      placeholder: "••••••••••••••••••••••••••••••••",
+                      value: state.loginToken,
+                      onInput: (e) => {
+                        state.loginToken = e.target.value.trim();
+                      },
+                    }),
+                    state.loginToken
+                      ? h("button", {
+                          type: "button",
+                          class: "token-suffix-btn",
+                          title: "清空",
+                          onClick: () => {
+                            state.loginToken = "";
+                            render();
+                          },
+                        }, "×")
+                      : null,
+                    h("button", {
+                      type: "button",
+                      class: "token-suffix-btn",
+                      title: state.showToken ? "隐藏 Token" : "显示明文",
+                      onClick: () => {
+                        state.showToken = !state.showToken;
+                        render();
+                      },
+                    },
+                      h("span", { class: "btn-icon", html: state.showToken ? ICONS.eye : ICONS.eyeOff }),
+                    ),
+                  ),
+                ),
+
+                // Scopes / Permissions Row
+                h("div", { class: "scopes-spec-box" },
+                  h("div", { class: "scopes-pills-row" },
+                    h("span", { class: "scope-pill" }, "D1: Edit"),
+                    h("span", { class: "scope-pill" }, "KV: Edit"),
+                    h("span", { class: "scope-pill" }, "Workers: Read"),
+                    h("span", { class: "scope-pill" }, "Account: Read"),
+                  ),
+                ),
+
+                h("button", {
+                  class: "btn btn-primary terminal-submit-btn",
+                  type: "submit",
+                  disabled: state.busy,
+                },
+                  state.busy
+                    ? [h("span", { class: "btn-icon", html: ICONS.spinner }), "CONNECTING..."]
+                    : "VALIDATE & ENTER WORKSPACE",
+                ),
+              ),
+        ),
+      ),
     ),
   );
-  return box;
 }
 
 async function onLogin(e) {
-  e.preventDefault();
+  e?.preventDefault?.();
+  const token = state.loginToken?.trim();
+  if (!token) {
+    state.error = "请输入 Cloudflare API Token";
+    render();
+    return;
+  }
   await withBusy(async () => {
+    state.error = "";
     const body = state.accounts
-      ? { token: state.loginToken, accountId: state.accountId }
-      : { token: state.loginToken };
+      ? { token, accountId: state.accountId }
+      : { token };
     const data = await api("/api/login", { body });
     if (data.needAccount) {
       state.accounts = data.accounts;
@@ -439,9 +668,14 @@ async function onLogin(e) {
 }
 
 function topbar() {
+  const hash = location.hash;
+  const nav = (href, label) =>
+    h("a", { class: `btn ${hash === href || hash.startsWith(`${href}/`) ? "btn-primary" : ""}`, href }, label);
   return h("header", { class: "top" },
     h("a", { class: "brand", href: "#/" }, "D1 Desk", h("span", {}, "LEDGER")),
-    h("a", { class: `btn ${location.hash.startsWith("#/mail") ? "btn-primary" : ""}`, href: "#/mail" }, "邮件"),
+    nav("#/mail", "邮件"),
+    nav("#/kv", "KV"),
+    nav("#/workers", "Workers"),
     h("button", { class: "btn", onClick: () => { state.palette = true; state.paletteQ = ""; state.paletteIndex = 0; render(); document.getElementById("palette-q")?.focus(); } },
       "切换数据库", h("span", { class: "kbd" }, "⌘K"),
     ),
@@ -454,6 +688,8 @@ function topbar() {
 async function logout() {
   await api("/api/logout", { method: "POST" });
   resetMail();
+  resetKv();
+  resetWorkers();
   Object.assign(state, { session: null, databases: [], db: null, tables: [], table: null, loginToken: "", accounts: null });
   go("/");
   render();
@@ -466,14 +702,25 @@ function homeView() {
     h("div", { class: "home-head" },
       h("div", {},
         h("div", { class: "kicker" }, "WORKSPACE"),
-        h("h2", {}, "数据与邮件"),
+        h("h2", {}, "数据与服务"),
       ),
-      h("a", { class: "btn btn-primary", href: "#/mail" }, "打开邮箱"),
     ),
-    h("a", { class: "card mail-hero", href: "#/mail" },
-      h("div", { class: "kicker" }, "EMAIL"),
-      h("h3", {}, "邮箱"),
-      h("p", { class: "lede" }, "收发逻辑来自 Cloudflare Agentic Inbox：Email Routing 入站，send_email 出站，正文和附件落在本项目的 D1 + R2。"),
+    h("div", { class: "grid home-launch" },
+      h("a", { class: "card mail-hero", href: "#/mail" },
+        h("div", { class: "kicker" }, "EMAIL"),
+        h("h3", {}, "邮箱"),
+        h("p", { class: "lede" }, "Email Routing 入站，send_email 出站，元数据进 D1，附件进 R2。"),
+      ),
+      h("a", { class: "card", href: "#/kv" },
+        h("div", { class: "kicker" }, "KV"),
+        h("h3", {}, "Workers KV"),
+        h("p", { class: "lede" }, "浏览 Namespace、按前缀列 key、查看与编辑 value。"),
+      ),
+      h("a", { class: "card", href: "#/workers" },
+        h("div", { class: "kicker" }, "WORKERS"),
+        h("h3", {}, "Workers"),
+        h("p", { class: "lede" }, "列出账号下脚本，查看 handlers、bindings 与配置。"),
+      ),
     ),
     h("div", { class: "home-head", style: "margin-top:28px" },
       h("div", {},
@@ -925,7 +1172,12 @@ function render() {
     return;
   }
   const loc = parseHash();
-  root.append(topbar(), loc.page === "mail" ? mailView() : state.db ? workspace() : homeView());
+  let body = homeView();
+  if (loc.page === "mail") body = mailView();
+  else if (loc.page === "kv") body = kvView();
+  else if (loc.page === "workers") body = workersView();
+  else if (state.db) body = workspace();
+  root.append(topbar(), body);
   if (state.modal) root.append(modalView());
   if (state.palette) root.append(paletteView());
   if (state.toast) root.append(h("div", { class: `toast ${state.toast.kind}` }, state.toast.message));
@@ -934,6 +1186,8 @@ function render() {
 
 window.addEventListener("hashchange", route);
 window.addEventListener("mail-render", render);
+window.addEventListener("kv-render", render);
+window.addEventListener("workers-render", render);
 window.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();

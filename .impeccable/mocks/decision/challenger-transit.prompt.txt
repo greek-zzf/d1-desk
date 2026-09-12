@@ -1,0 +1,11 @@
+Landscape 16:9 full-bleed desktop login UI for D1 Desk. Midnight transit diagram mural. Chinese copy. No browser chrome.
+
+COMPOSITION (critical):
+- Entire frame is enamel midnight blue #0b1c3a mural with faint porcelain tick grid.
+- Four thick route lines ONLY at 45° and 90°: scarlet #e11d48, cobalt #2563eb, amber #f59e0b, green #10b981. They all meet at ONE large central interchange circle in the middle of the frame.
+- That central interchange is labeled TOKEN in porcelain white. Directly attached to / overlapping that station node: the login cluster (must sit at the interchange, not in a left sidebar).
+- Login cluster at the station: porcelain-bordered field 「粘贴 Cloudflare API Token」; tip 「Token 权限需含 D1、Workers、Workers KV、Email Routing / Email Sending」; text link 「创建 Token」; scarlet #e11d48 button 「进入工作台」 as the clearest primary action.
+- The ONLY station labels on the four lines are 「D1」「KV」「Workers」「邮件」 — one per colored line, near outer ticks. NO English city names (no CENTRAL, HILLTOP, WESTGATE, PARKSIDE, SOUTHBAY, etc.). Sparse porcelain ticks only.
+- Brand top: 「D1 Desk」 large porcelain + small LEDGER; short line 「账号级工作台」.
+
+Style: enamel ground, porcelain ticks, geometric transit sans, schematic mural only — not a photo, not a floating SaaS card. Readable Chinese. High fidelity finished mock.

@@ -1,0 +1,12 @@
+Landscape 16:9 desktop UI mockup — first viewport of D1 Desk Chinese login as an engineering graph-paper notebook page. Full-bleed graph paper fills the entire frame. No browser chrome, no floating SaaS cards, no decorative stickers.
+
+COMPOSITION (prompt led by surface structure, regions in order with scale):
+- Full-bleed engineering graph paper ground (#f7f4ea) with fine gray (#9ca3af) grid — hard field-notebook page, not a soft diary.
+- Top header band: product name 「D1 Desk」 in hard #222222 engineering sans / technical lettering — brand is the dominant first signal on the page.
+- Below header: checklist of four account capabilities as check-box rows in Chinese, readable and orderly — 「D1」「KV」「Workers」「邮件」 — like a pre-shift engineering checklist, not casual handwriting flourishes.
+- Mid page: Token password line — a ruled input row labeled for Cloudflare API Token / 「粘贴 API Token」, password-style masked field, obvious as the primary operable control.
+- Primary CTA in blue ballpoint ink (#1d4ed8): exactly 「进入工作台」 — the clearest action after the Token field; blue-ink emphasis on hard graph paper, engineering tone not playful script.
+- Permission tip in smaller #9ca3af / #222222 technical type near the CTA: Token needs D1、Workers、Workers KV、Email Routing / Email Sending permissions; optional text link 「去创建 Token」.
+- Optional thin hard-cover edge at one margin only if it reads as notebook binding — keep the page operable and full-bleed.
+
+Palette strictly: #f7f4ea paper, #222222 type/structure, #1d4ed8 blue-ink CTA/accent, #9ca3af grid and secondary. Materials: graph paper, ballpoint blue, hard cover edge. Style: engineering hard tone field notebook — crisp, disciplined, tool-like. Real product name D1 Desk. Chinese UI labels. No invented prices, dates, versions, or commercial claims. High fidelity finished north-star login mock.

@@ -1,0 +1,16 @@
+Production-fidelity landscape 16:9 desktop UI mockup — first viewport only — of the D1 Desk Chinese login page rendered as a carbon-copy freight waybill. Full-bleed continuous multi-part carbon paper waybill sheet filling the entire frame edge-to-edge — NOT a floating card, NO soft drop shadows, NO centered SaaS login card, NO browser chrome. Flat ink on carbon-copy stock.
+
+PALETTE exactly: paper ground #efe6d4 (warm carbon-copy cream), ink #1a1a1a, stamp red #b91c1c, muted steel #5c6b7a. Materials: NCR carbon-copy freight waybill paper with faint pink/blue carbon transfer haze, hard ruled table lines, rubber-stamp ink, perforated tear margin suggestion at left edge. High-contrast tabular cargo density — dense freight form, not sparse SaaS whitespace.
+
+STRUCTURE (top to bottom, named regions with scale relationships):
+1) WAYBILL HEADER (~18% height): left — large bold industrial stencil/stamp wordmark "D1 Desk" in #1a1a1a; right — tight tracking caps "LEDGER" as consignee/ledger mark in #5c6b7a. Thin double hairline rules under header. Small Chinese waybill meta labels only if needed (e.g. 运单 / 登录), no English marketing fluff. No version numbers, no copyright lines, no ©, no fake legal footer.
+2) CARGO MANIFEST TABLE (~40% height): full-bleed high-contrast tabular cargo rows spanning the sheet width — ruled columns like a freight bill of lading. Four dense cargo line items with Chinese labels and capability names clearly readable:
+   - 货物 D1 — 数据库浏览与 SQL
+   - 货物 KV — Namespace / Key 读写
+   - 货物 Workers — 脚本与 Bindings
+   - 货物 邮件 — 收发与起草
+   Dense zebra or tight ruled packing-list typography in #1a1a1a on #efe6d4; column headers in #5c6b7a small caps Chinese (品名 / 说明 / 状态). One visual idea: the table is the capability list that a single stamp action deploys.
+3) SEAL / CREDENTIAL FIELD (~28% height): rectangular rubber-seal / customs-clearance box on the same continuous sheet — label "API Token" or "凭证 / API Token" in ink. Wide hard-bordered input field for pasting token (placeholder Chinese: "粘贴 Cloudflare API Token"). Below field: small muted #5c6b7a permission tip in Chinese about required Token permissions (会话 Cookie、不落盘), plus underlined text link "去创建 Token". Looks like a seal box / stamp area on a waybill, not a soft UI card.
+4) RUBBER-STAMP CTA (~14% height): large red #b91c1c rubber-stamp impression reading exactly "进入工作台" — circular or rectangular stamp mark with slight ink bleed and rotation as if stamped once on the waybill bottom — this is the single primary action that deploys/clears the cargo list into the workspace. High contrast, unmistakable. Idle state only.
+
+Chinese UI copy only throughout. Real product name D1 Desk and LEDGER mark. No invented prices, dates, version strings, copyright notices, testimonials, or commercial claims. No purple gradients, no glassmorphism, no floating badges. Crisp high-resolution desktop web content-area mock as one continuous carbon-copy freight waybill sheet.

@@ -1,0 +1,10 @@
+Landscape 16:9 full-bleed desktop login UI for D1 Desk. 1990s Japanese mecha anime crisis-wall / HUD control-panel aesthetic. Chinese primary UI. No browser chrome. No floating SaaS card.
+
+COMPOSITION (critical — surface structure first):
+- Entire viewport is one absolute-black (#000000) mecha crisis wall: flat anime cel planes, thick ink outlines, hazard chevron bands, cockpit HUD readouts — full-bleed wall, not a photo, not a centered card.
+- Top / hero: giant brand wordmark 「D1 Desk」 in massive angular mecha display type — phosphor orange #ff6a00 with acid-green #b8ff00 accent strokes; brand is the dominant first signal. Optional tiny bilingual HUD tags (SYSTEM / LEDGER) but Chinese remains primary.
+- Four module readout panels in a clear row or grid, each framed by black-and-orange hazard chevrons: 「D1」「KV」「Workers」「邮件」 — status-style anime HUD gauges, acid-green #b8ff00 phosphor numerals/ticks, readable Chinese labels.
+- Login cluster below the readouts, still findable and operable: Token field labeled 「粘贴 API Token」 (masked input), short permission tip about D1 / Workers / Workers KV / Email Routing / Email Sending, text link 「创建 Token」.
+- Primary CTA: large button reading exactly 「进入工作台」, framed by a continuous hazard chevron band (black + #ff6a00 diagonals); button face uses #ff1e1e alert red or #ff6a00 so it reads as the crisis-wall commit control — most obvious action after the Token field.
+
+Palette strictly: #000000 ground, #ff6a00 phosphor orange, #b8ff00 acid green, #ff1e1e hazard red only. Materials: anime cel flats, thick linework, hazard chevrons, phosphor HUD glow (restrained, not purple neon mush). Style: 90s mecha anime crisis wall login — high-fidelity finished north-star mock. Real product name D1 Desk. No invented prices, dates, benchmarks, or commercial claims. Token field and 「进入工作台」 must stay obvious.

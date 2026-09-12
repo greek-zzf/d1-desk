@@ -1,0 +1,14 @@
+{
+  "regions": [
+    { "id": "brand-title", "kind": "text", "grid": "A1:C1", "note": "D1 Desk italic serif title" },
+    { "id": "brand-badge", "kind": "control", "grid": "A2:B2", "note": "LEDGER // v2.4 badge" },
+    { "id": "topology-flow", "kind": "chrome", "grid": "A3:D6", "note": "Architecture topology dataflow diagram", "codeDrawn": true },
+    { "id": "security-heading", "kind": "text", "grid": "A7:C7", "note": "Zero-disk security guarantees heading" },
+    { "id": "security-bullets", "kind": "text", "grid": "A8:C9", "note": "Zero-disk bullet points list" },
+    { "id": "terminal-chrome", "kind": "chrome", "grid": "F0:J1", "note": "Terminal window title bar with traffic lights" },
+    { "id": "token-label", "kind": "text", "grid": "F3:G3", "note": "API token field label" },
+    { "id": "token-input", "kind": "control", "grid": "F4:J4", "note": "API token password input box" },
+    { "id": "permission-scopes", "kind": "control", "grid": "F5:J5", "note": "Permission scope pills row" },
+    { "id": "submit-button", "kind": "control", "grid": "F6:J6", "note": "VALIDATE & ENTER WORKSPACE button" }
+  ]
+}

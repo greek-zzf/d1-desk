@@ -1,5 +1,18 @@
 import { clearCookie, json, makeCookie, originOk, readSession, type Session } from "./auth";
-import { CfApiError, getDatabase, listAccounts, listDatabases, queryD1 } from "./cf";
+import {
+  CfApiError,
+  deleteKvValue,
+  getDatabase,
+  getKvValue,
+  getWorkerSettings,
+  listAccounts,
+  listDatabases,
+  listKvKeys,
+  listKvNamespaces,
+  listWorkers,
+  putKvValue,
+  queryD1,
+} from "./cf";
 import { handleMailApi } from "./mail/api";
 import { handleMigrate } from "./mail/migrate";
 import { receiveEmail } from "./mail/receive";
@@ -64,6 +77,14 @@ async function handleApi(request: Request, env: Env, url: URL, ctx: ExecutionCon
   try {
     if (path.startsWith("/api/mail")) {
       return await handleMailApi(request, env, url, ctx);
+    }
+
+    if (path.startsWith("/api/kv")) {
+      return await handleKvApi(request, session, url);
+    }
+
+    if (path.startsWith("/api/workers")) {
+      return await handleWorkersApi(request, session, url);
     }
 
     if (method === "GET" && path === "/api/databases") {
@@ -371,4 +392,78 @@ async function tableDelete(
     whereCols.map((c) => where[c]),
   );
   return json({ result });
+}
+
+async function handleKvApi(request: Request, session: Session, url: URL): Promise<Response> {
+  const path = url.pathname;
+  const method = request.method;
+
+  if (method === "GET" && path === "/api/kv/namespaces") {
+    const namespaces = await listKvNamespaces(session.token, session.accountId);
+    namespaces.sort((a, b) => a.title.localeCompare(b.title));
+    return json({ namespaces });
+  }
+
+  const nsMatch = path.match(/^\/api\/kv\/namespaces\/([^/]+)(?:\/(.*))?$/);
+  if (!nsMatch) return json({ error: "Not found" }, { status: 404 });
+  const namespaceId = decodeURIComponent(nsMatch[1]);
+  const rest = nsMatch[2] ?? "";
+
+  if (method === "GET" && rest === "keys") {
+    const page = await listKvKeys(session.token, session.accountId, namespaceId, {
+      prefix: url.searchParams.get("prefix") || undefined,
+      cursor: url.searchParams.get("cursor") || undefined,
+      limit: Number(url.searchParams.get("limit") || 100) || 100,
+    });
+    return json(page);
+  }
+
+  const valueMatch = rest.match(/^values\/(.+)$/);
+  if (valueMatch) {
+    const key = decodeURIComponent(valueMatch[1]);
+    if (method === "GET") {
+      const data = await getKvValue(session.token, session.accountId, namespaceId, key);
+      return json({ key, ...data });
+    }
+    if (method === "PUT") {
+      const body = await readJson<{ value?: string; expiration_ttl?: number; metadata?: unknown }>(request);
+      if (typeof body.value !== "string") return json({ error: "value is required" }, { status: 400 });
+      await putKvValue(session.token, session.accountId, namespaceId, key, body.value, {
+        expiration_ttl: body.expiration_ttl,
+        metadata: body.metadata,
+      });
+      return json({ ok: true });
+    }
+    if (method === "DELETE") {
+      await deleteKvValue(session.token, session.accountId, namespaceId, key);
+      return json({ ok: true });
+    }
+  }
+
+  return json({ error: "Not found" }, { status: 404 });
+}
+
+async function handleWorkersApi(request: Request, session: Session, url: URL): Promise<Response> {
+  const path = url.pathname;
+  const method = request.method;
+
+  if (method === "GET" && path === "/api/workers") {
+    const workers = await listWorkers(session.token, session.accountId);
+    workers.sort((a, b) => a.id.localeCompare(b.id));
+    return json({ workers });
+  }
+
+  const detail = path.match(/^\/api\/workers\/([^/]+)$/);
+  if (detail && method === "GET") {
+    const name = decodeURIComponent(detail[1]);
+    let settings: Awaited<ReturnType<typeof getWorkerSettings>> | null = null;
+    try {
+      settings = await getWorkerSettings(session.token, session.accountId, name);
+    } catch (error) {
+      if (!(error instanceof CfApiError) || (error.status !== 404 && error.status !== 400)) throw error;
+    }
+    return json({ worker: { id: name }, settings });
+  }
+
+  return json({ error: "Not found" }, { status: 404 });
 }

@@ -1,0 +1,12 @@
+Production-fidelity landscape 16:9 full-screen UI mockup of D1 Desk Chinese login as ONE continuous server-rack faceplate filling the entire viewport—NOT a floating SaaS card, NOT a browser chrome overlay. The whole screen IS a brushed metal 19-inch rack unit front: horizontal brushed aluminum faceplate, corner screws, side rack ears/handles, vent slots.
+
+Strict palette ONLY: chassis #1b1d22, brushed metal and legends #d7dde8, LED green #39ff14, power/alert red #ff3b30.
+
+STRUCTURE top to bottom:
+1) NAMEPLATE (top): bolted brushed metal plate with product name "D1 Desk" large and clear; small secondary mark "LEDGER" beside it.
+2) LED STATUS BANK: four labeled LED rows for D1, KV, Workers, 邮件 — round #39ff14 LEDs in bezels with silkscreen labels; some LEDs lit, some dark. Optional short status words 就绪 / 待机 only—no fake metrics.
+3) KEYSLOT Token field: recessed keyslot-style password bay; label "API Token"; Chinese hint "粘贴 Cloudflare API Token"; masked dots in the slot; keyhole motif allowed.
+4) POWER CTA: large circular industrial power button with #ff3b30 ring/glow; Chinese label "进入工作台" directly under or on the button.
+5) PERMISSION TIP + LINK (bottom legend, small type): brief Chinese tip only—e.g. "权限提示：Token 需具备访问 D1、KV、Workers与邮件的相关权限" PLUS text link "去创建 Token". CRITICAL: do NOT invent fake permission scope strings (no workspace:read, no kv:write, no worker:deploy, no mail:send, no colon-scoped API permission lists). Do NOT invent prices, dates, benchmarks, or fake URLs.
+
+Materials: brushed aluminum, anodized dark chassis, silkscreen legends, physical LED bezels, recessed keyslot, industrial power button. Chinese UI copy. High-resolution crisp product mock. Full-bleed rack face only.

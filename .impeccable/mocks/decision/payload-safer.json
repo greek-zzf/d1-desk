@@ -1,0 +1,57 @@
+{
+  "title": "选择登录页的视觉世界",
+  "question": "Safer 手：更熟悉的方向 + 品类标准。选一张，或说明还缺什么品质再掷。",
+  "options": [
+    {
+      "id": "safer-ledger",
+      "label": "账本封面",
+      "lineage": "desk ledger / cashbook covers",
+      "thesis": "LEDGER 字面落地：账本封面写清四本账，扉页贴 Token 开账。",
+      "palette": ["#1f1a14", "#f0e6d2", "#8b1e1e", "#6b6358"],
+      "materials": ["bound board cover", "ruled endpaper", "ink stamp"],
+      "viewport": "全屏账本摊开：左封面 D1 Desk / LEDGER，右页四行科目 D1/KV/Workers/邮件，凭证栏贴 Token，书签条「进入工作台」。",
+      "risk": "书本隐喻一软，就会滑向文艺笔记本而不是工具。",
+      "comp": ".impeccable/mocks/decision/safer-ledger.webp"
+    },
+    {
+      "id": "safer-notebook",
+      "label": "工程方格本",
+      "lineage": "engineering field notebooks",
+      "thesis": "方格本首页：标题、能力清单、Token 一行，像开工前的手写检查表。",
+      "palette": ["#f7f4ea", "#222222", "#1d4ed8", "#9ca3af"],
+      "materials": ["graph paper", "ballpoint blue", "hard cover edge"],
+      "viewport": "淡方格全屏页：顶行 D1 Desk，勾选式四能力，密码格贴 Token，底行蓝笔强调「进入工作台」与权限提示。",
+      "risk": "太手写会显得不严肃；要保持工程记录的硬朗。",
+      "comp": ".impeccable/mocks/decision/safer-notebook.webp"
+    },
+    {
+      "id": "safer-flightstrip",
+      "label": "飞行条操作板",
+      "lineage": "ATC flight-strip boards",
+      "thesis": "四条飞行条就是四能力；Token 是放行栏，签完才能进场。",
+      "palette": ["#2c3340", "#f4f1ea", "#f59e0b", "#ef4444"],
+      "materials": ["plastic strip holders", "printed strips", "status tabs"],
+      "viewport": "深灰操作台全屏：横向四条 D1/KV/Workers/邮件，放行栏 Token 输入，动作条「进入工作台」。",
+      "risk": "航空隐喻对非运维开发者可能要多一秒理解。",
+      "comp": ".impeccable/mocks/decision/safer-flightstrip.webp"
+    }
+  ],
+  "reroll": {
+    "registers": ["safer", "bolder"]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "品类标准（对标 Dashboard / TablePlus / Neon）",
+    "thesis": "按 Cloudflare Dashboard、TablePlus、Neon Console 的登录/连接入口标准，把居中表单做到同等工艺。",
+    "palette": ["#ffffff", "#0b1220", "#2563eb"],
+    "materials": ["product chrome", "quiet ground", "one primary button"],
+    "viewport": "熟悉的居中登录：D1 Desk、Token、权限提示、进入工作台——对标上述三家的清晰度与完成度。",
+    "risk": "辨识度让位给「和其他工具一样好用」。",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

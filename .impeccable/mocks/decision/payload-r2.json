@@ -1,0 +1,146 @@
+{
+  "title": "选择登录页的视觉世界",
+  "question": "重掷后分配到「货运运单」。保留、选备选，或再掷。",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "货运运单",
+      "kicker": "THE ROLL",
+      "lineage": "carbon-copy freight waybills",
+      "thesis": "登录是一张运单：货物栏写明 D1/KV/Workers/邮件，封印栏贴上 Token。",
+      "palette": ["#efe6d4", "#1a1a1a", "#b91c1c", "#5c6b7a"],
+      "materials": ["carbon-copy paper", "rubber stamp ink", "perforated tear-off"],
+      "viewport": "整屏运单：抬头 D1 Desk / LEDGER，货物明细四行，封印/凭证栏贴 API Token，底边盖章动作「进入工作台」。",
+      "risk": "若做成可爱插画运单，会立刻丢掉操作工具的严肃感。",
+      "raised": [
+        {
+          "from": "challenger-ikeda",
+          "raise": "能力行用等高表格密度排版，只用高对比墨色。"
+        },
+        {
+          "from": "challenger-miura",
+          "raise": "一次盖章动作展开整张能力清单，不零散散落。"
+        },
+        {
+          "from": "challenger-tensegrity",
+          "raise": "每一行能力都是真实载荷标注，不是装饰标签。"
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "机柜面板",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "server rack faceplates",
+      "thesis": "机柜前面板：四颗状态灯对应四能力，钥匙孔就是 Token。",
+      "palette": ["#1b1d22", "#d7dde8", "#39ff14", "#ff3b30"],
+      "materials": ["brushed metal", "status LEDs", "keyslot bezel"],
+      "viewport": "全屏机柜面：D1 Desk 铭牌，D1/KV/Workers/邮件 LED 行，钥匙槽式 Token 输入，电源键式「进入工作台」。",
+      "risk": "也是开发者工具登录里很常见的硬件隐喻。",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "challenger-anime-cc",
+      "label": "机甲指挥墙",
+      "verdict": "competitive",
+      "lineage": "nineties mecha-anime crisis wall",
+      "thesis": "黑底橙绿磷光墙：双语标牌，倒计时级主操作，贴 Token 开火。",
+      "palette": ["#000000", "#ff6a00", "#b8ff00", "#ff1e1e"],
+      "materials": ["phosphor glow", "hazard chevrons", "seven-segment"],
+      "viewport": "绝对黑全屏指挥墙：巨字 D1 Desk，四模块读数，Token 输入框，危险斜纹框住「进入工作台」。",
+      "case": "操作层级清晰，但对日常贴 Token 偏危机戏剧。",
+      "risk": "警报美学压过冷静工作台时会像过场动画。",
+      "comp": ".impeccable/mocks/decision/challenger-anime-cc.webp",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-anime-command-center-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/pop-culture-shelf-anime-command-center.webp"
+    },
+    {
+      "id": "challenger-cdrom",
+      "label": "CD-ROM 控制台",
+      "verdict": "competitive",
+      "lineage": "mid-nineties CD-ROM chrome console",
+      "thesis": "整屏是一台渲染机器：中央窗贴 Token，四周压感开关对应能力。",
+      "palette": ["#8a93a0", "#d5dbe3", "#2dd4bf", "#7c3aed"],
+      "materials": ["brushed panels", "beveled toggles", "embossed icons"],
+      "viewport": "固定灰金属控制台：中央亮窗为 Token 与权限说明，四周 D1/KV/Workers/邮件压感键，主钮「进入工作台」。",
+      "case": "控制隐喻清楚，年代感认同因人而异。",
+      "risk": "复古镀铬盖过当代工具可信度。",
+      "comp": ".impeccable/mocks/decision/challenger-cdrom.webp",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-cdrom-chrome-navigation-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/digital-design-canon-cdrom-chrome-navigation.webp"
+    },
+    {
+      "id": "challenger-nixie",
+      "label": "辉光管计数台",
+      "verdict": "competitive",
+      "lineage": "nixie-tube laboratory counter",
+      "thesis": "实验室计数台：管位显示会话状态，面板铭文引导贴 Token。",
+      "palette": ["#0d0d0f", "#ff6a00", "#2a2c33", "#9aa0a8"],
+      "materials": ["glass envelopes", "blackened steel", "engraved caps"],
+      "viewport": "钢底全屏：辉光数字显示就绪，铭牌 D1 Desk，Token 槽与四能力管位，主动作「进入工作台」。",
+      "case": "仪器认同强，但 Token 不是计数，需翻译成面板槽位。",
+      "risk": "管阵喧宾夺主时会看不清输入。",
+      "comp": ".impeccable/mocks/decision/challenger-nixie.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter.webp"
+    },
+    {
+      "id": "challenger-ikeda",
+      "label": "数据崇高场",
+      "verdict": "declined",
+      "lineage": "Ryoji Ikeda datamatics field",
+      "thesis": "纯黑白条码场里扫描出 Token 入口。",
+      "palette": ["#000000", "#ffffff"],
+      "materials": ["pixel-crisp bars", "monospace numerics"],
+      "case": "场景认同弱，主任务易淹没在数据场。",
+      "kept": "高对比表格密度与纯墨纪律。",
+      "hero": "https://impeccable.style/worlds/cards/ikeda-datamatics-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/ikeda-datamatics.webp"
+    },
+    {
+      "id": "challenger-tensegrity",
+      "label": "张拉整体柱",
+      "verdict": "declined",
+      "lineage": "tensegrity breathing column",
+      "thesis": "张力网络图解登录载荷。",
+      "palette": ["#e8e6e1", "#111111", "#e11d48"],
+      "materials": ["carbon rods", "red cord"],
+      "case": "雕塑隐喻对贴 Token 几乎无识别。",
+      "kept": "每条标注对应真实载荷路径。",
+      "hero": "https://impeccable.style/worlds/cards/kinetic-sculpture-automata-tensegrity-breathing-column-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/kinetic-sculpture-automata-tensegrity-breathing-column.webp"
+    },
+    {
+      "id": "challenger-miura",
+      "label": "Miura 折展帆",
+      "verdict": "declined",
+      "lineage": "Miura-fold deployable sheet",
+      "thesis": "一拉展开整张能力网格。",
+      "palette": ["#f7f7f5", "#c9a227", "#1a1a1a", "#9db7c9"],
+      "materials": ["matte sheet", "gold foil packet", "crease graph"],
+      "case": "折纸仪式压过鉴权任务。",
+      "kept": "一次动作展开完整能力场。",
+      "hero": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet.webp"
+    }
+  ],
+  "reroll": {
+    "registers": ["safer", "bolder"]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "品类标准登录卡",
+    "thesis": "居中卡片、标志、表单、主按钮，把通用登录做到极致。",
+    "palette": ["#ffffff", "#111827", "#2563eb"],
+    "materials": ["soft card", "system sans", "flat fill"],
+    "viewport": "静谧底上的居中登录卡：Logo、Token 输入、进入工作台。",
+    "risk": "刻意与竞品同构，辨识度让位给熟悉。",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}
