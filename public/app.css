@@ -733,7 +733,7 @@ a { color: var(--accent); }
 }
 
 /* Home */
-.home { padding: 28px 24px 60px; max-width: 1200px; margin: 0 auto; }
+.home { padding: 28px 24px 60px; max-width: 1200px; margin: 0 auto; overflow: auto; min-height: 0; width: 100%; }
 .home-head {
   display: flex;
   justify-content: space-between;
@@ -1059,6 +1059,71 @@ table.data td input {
   max-height: 420px;
   color: var(--muted);
   font-size: 12px;
+}
+.log-head { align-items: start; }
+.log-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.log-search { max-width: 180px; }
+.log-stream {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  overflow: auto;
+  max-height: min(560px, 60vh);
+}
+.log-item { border-bottom: 1px solid var(--line); }
+.log-item:last-child { border-bottom: 0; }
+.log-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 158px 72px 140px minmax(0, 1fr);
+  gap: 10px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  color: inherit;
+  appearance: none;
+}
+.log-row:hover { background: rgba(214, 255, 63, 0.04); }
+.log-item.open .log-row { background: var(--bg-3); }
+.log-time { color: var(--muted); white-space: nowrap; }
+.log-level {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.log-level.error, .log-item.error .log-msg { color: #ffb4a6; }
+.log-level.warn { color: var(--warn); }
+.log-level.ok { color: var(--ok); }
+.log-meta {
+  color: var(--faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.log-msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-json { margin: 0 12px 12px; max-height: 280px; }
+.log-more { margin: 10px 12px 12px; }
+.log-empty { padding: 28px 16px; }
+.log-empty h3 { font-size: 22px; }
+
+@media (max-width: 840px) {
+  .log-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .log-msg { grid-column: 1 / -1; }
 }
 .mono { font-family: var(--sans); color: var(--muted); font-size: 12px; word-break: break-all; }
 

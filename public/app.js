@@ -719,7 +719,7 @@ function homeView() {
       h("a", { class: "card", href: "#/workers" },
         h("div", { class: "kicker" }, "WORKERS"),
         h("h3", {}, "Workers"),
-        h("p", { class: "lede" }, "列出账号下脚本，查看 handlers、bindings 与配置。"),
+        h("p", { class: "lede" }, "列出账号下脚本，查看 handlers、bindings、日志与配置。"),
       ),
     ),
     h("div", { class: "home-head", style: "margin-top:28px" },

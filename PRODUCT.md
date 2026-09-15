@@ -23,7 +23,7 @@ D1 Desk 是账号级 Cloudflare 工作台：浏览与操作 D1、Workers KV、Wo
 - 登录：粘贴 Cloudflare API Token；Token 仅存于 HttpOnly Cookie，不落盘、不进仓库。
 - 本地：`pnpm dev`（Wrangler，默认 http://localhost:8788）。
 - 部署：Workers 自托管（`pnpm deploy` + `AUTH_SECRET`）。
-- 主要工作流：选账号 → D1 库/表浏览与 SQL、KV namespace/key 读写、Workers 列表与 bindings 详情、邮件收发与 Agent 起草。
+- 主要工作流：选账号 → D1 库/表浏览与 SQL、KV namespace/key 读写、Workers 列表与 bindings / 日志、邮件收发与 Agent 起草。
 - 邮件依赖：域名 Email Routing（catch-all → 本 Worker）、可选 Email Sending、本项目 D1/R2 存元数据与附件；Agent 需 Workers AI 额度。
 
 ## Capabilities and Constraints
@@ -32,7 +32,7 @@ D1 Desk 是账号级 Cloudflare 工作台：浏览与操作 D1、Workers KV、Wo
 
 - D1：库列表、表浏览、单元格编辑、SQL 控制台、快捷键（⌘K 切库、⌘↵ 跑 SQL）。
 - KV：Namespace 列表、前缀筛选、游标分页、查看/编辑/删除/新建 key（可选 TTL）。
-- Workers：脚本列表与详情（handlers、usage model、bindings、compatibility flags、settings）。
+- Workers：脚本列表与详情（handlers、usage model、bindings、compatibility flags、settings、Observability 日志）。
 - 邮件：邮箱地址、收件箱/草稿、入站 Worker `email()` + postal-mime、出站 `send_email`、Agent 自动起草回复（不直接发送）。
 
 **硬约束（必须保留）**

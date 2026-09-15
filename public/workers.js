@@ -1,11 +1,29 @@
 import { api, formatTime, h } from "./app.js";
 
+const SINCE_OPTIONS = [
+  { id: "15m", label: "15 分钟" },
+  { id: "1h", label: "1 小时" },
+  { id: "6h", label: "6 小时" },
+  { id: "24h", label: "24 小时" },
+  { id: "7d", label: "7 天" },
+];
+
 export const workers = {
   list: [],
   filter: "",
   name: "",
   detail: null,
   settings: null,
+  logs: [],
+  logsCount: 0,
+  logsSince: "1h",
+  logsKind: "all",
+  logsQ: "",
+  logsError: "",
+  logsCursor: null,
+  logsHasMore: false,
+  logsBusy: false,
+  expandedLog: "",
 };
 
 export function resetWorkers() {
@@ -15,6 +33,16 @@ export function resetWorkers() {
     name: "",
     detail: null,
     settings: null,
+    logs: [],
+    logsCount: 0,
+    logsSince: "1h",
+    logsKind: "all",
+    logsQ: "",
+    logsError: "",
+    logsCursor: null,
+    logsHasMore: false,
+    logsBusy: false,
+    expandedLog: "",
   });
 }
 
@@ -39,12 +67,54 @@ export async function loadWorkersRoute(loc) {
   if (!workers.name) {
     workers.detail = null;
     workers.settings = null;
+    workers.logs = [];
+    workers.logsError = "";
+    workers.logsCursor = null;
+    workers.logsHasMore = false;
+    workers.expandedLog = "";
     return;
   }
   const data = await api(`/api/workers/${encodeURIComponent(workers.name)}`);
   const cached = workers.list.find((w) => w.id === workers.name);
   workers.detail = { ...(cached || {}), ...(data.worker || { id: workers.name }) };
   workers.settings = data.settings || null;
+  await loadWorkerLogs();
+}
+
+async function loadWorkerLogs({ append = false } = {}) {
+  if (!workers.name) return;
+  workers.logsBusy = true;
+  if (!append) {
+    workers.logsError = "";
+    workers.expandedLog = "";
+  }
+  rerender();
+  try {
+    const params = new URLSearchParams();
+    params.set("since", workers.logsSince || "1h");
+    params.set("kind", workers.logsKind || "all");
+    params.set("limit", "100");
+    if (workers.logsQ.trim()) params.set("q", workers.logsQ.trim());
+    if (append && workers.logsCursor) params.set("offset", workers.logsCursor);
+    const data = await api(`/api/workers/${encodeURIComponent(workers.name)}/logs?${params}`);
+    const next = data.events || [];
+    workers.logs = append ? workers.logs.concat(next) : next;
+    workers.logsCount = data.count ?? workers.logs.length;
+    workers.logsCursor = data.cursor || null;
+    workers.logsHasMore = !!data.hasMore;
+    workers.logsError = "";
+  } catch (err) {
+    if (!append) {
+      workers.logs = [];
+      workers.logsCount = 0;
+      workers.logsCursor = null;
+      workers.logsHasMore = false;
+    }
+    workers.logsError = err.message || "加载日志失败";
+  } finally {
+    workers.logsBusy = false;
+    rerender();
+  }
 }
 
 export function workersView() {
@@ -121,6 +191,7 @@ function detailView() {
           ),
         )
       : null,
+    logsView(),
     h("div", { class: "section-block" },
       h("div", { class: "home-head", style: "margin-bottom:12px" },
         h("div", {},
@@ -156,6 +227,149 @@ function detailView() {
       h("pre", { class: "json-pre" }, JSON.stringify(settings, null, 2)),
     ),
   );
+}
+
+function logsView() {
+  const sinceLabel = SINCE_OPTIONS.find((o) => o.id === workers.logsSince)?.label || "1 小时";
+  return h("div", { class: "section-block" },
+    h("div", { class: "home-head log-head" },
+      h("div", {},
+        h("div", { class: "kicker" }, "LOGS"),
+        h("h2", { style: "font-size:22px" }, workers.logsBusy && workers.logs.length === 0
+          ? "加载中…"
+          : `${workers.logs.length} 条日志`),
+      ),
+      h("div", { class: "log-toolbar" },
+        h("div", { class: "tabs" },
+          ...SINCE_OPTIONS.map((opt) =>
+            h("button", {
+              class: `tab ${workers.logsSince === opt.id ? "active" : ""}`,
+              disabled: workers.logsBusy,
+              onClick: () => {
+                if (workers.logsSince === opt.id) return;
+                workers.logsSince = opt.id;
+                loadWorkerLogs();
+              },
+            }, opt.label),
+          ),
+        ),
+        h("div", { class: "tabs" },
+          h("button", {
+            class: `tab ${workers.logsKind === "all" ? "active" : ""}`,
+            disabled: workers.logsBusy,
+            onClick: () => {
+              if (workers.logsKind === "all") return;
+              workers.logsKind = "all";
+              loadWorkerLogs();
+            },
+          }, "全部"),
+          h("button", {
+            class: `tab ${workers.logsKind === "errors" ? "active" : ""}`,
+            disabled: workers.logsBusy,
+            onClick: () => {
+              if (workers.logsKind === "errors") return;
+              workers.logsKind = "errors";
+              loadWorkerLogs();
+            },
+          }, "错误"),
+        ),
+        h("input", {
+          class: "search log-search",
+          placeholder: "搜索日志",
+          value: workers.logsQ,
+          onInput: (e) => { workers.logsQ = e.target.value; },
+          onKeydown: (e) => {
+            if (e.key === "Enter") loadWorkerLogs();
+          },
+        }),
+        h("button", {
+          class: "btn",
+          disabled: workers.logsBusy,
+          onClick: () => loadWorkerLogs(),
+        }, workers.logsBusy ? "刷新中" : "刷新"),
+      ),
+    ),
+    workers.logsError
+      ? h("div", { class: "err" }, workers.logsError)
+      : null,
+    logBody(sinceLabel),
+  );
+}
+
+function logBody(sinceLabel) {
+  if (workers.logsError && workers.logs.length === 0) return null;
+  if (workers.logsBusy && workers.logs.length === 0) {
+    return h("div", { class: "empty log-empty" },
+      h("h3", {}, "加载日志…"),
+      h("p", {}, "正在查询 Workers Observability。"),
+    );
+  }
+  if (workers.logs.length === 0) {
+    return h("div", { class: "empty log-empty" },
+      h("h3", {}, "没有日志"),
+      h("p", {}, workers.logsKind === "errors"
+        ? `最近 ${sinceLabel} 没有错误日志。`
+        : `最近 ${sinceLabel} 没有日志。确认这个 Worker 已开启 observability、有流量，并且 Token 有 Workers Observability · Write 权限。`),
+    );
+  }
+  return h("div", { class: "log-stream" },
+    ...workers.logs.map((ev, i) => logRow(ev, i)),
+    workers.logsHasMore
+      ? h("button", {
+          class: "btn log-more",
+          disabled: workers.logsBusy,
+          onClick: () => loadWorkerLogs({ append: true }),
+        }, workers.logsBusy ? "加载中…" : "加载更多")
+      : null,
+  );
+}
+
+function logRow(ev, index) {
+  const key = ev.id || String(index);
+  const open = workers.expandedLog === key;
+  const tone = logTone(ev);
+  return h("div", { class: `log-item ${tone}${open ? " open" : ""}` },
+    h("button", {
+      class: "log-row",
+      onClick: () => {
+        workers.expandedLog = open ? "" : key;
+        rerender();
+      },
+    },
+      h("span", { class: "log-time" }, formatLogTime(ev.timestamp)),
+      h("span", { class: `log-level ${tone}` }, (ev.level || ev.outcome || "log").toUpperCase()),
+      h("span", { class: "log-meta" }, logMeta(ev)),
+      h("span", { class: "log-msg" }, ev.message || ev.error || "—"),
+    ),
+    open
+      ? h("pre", { class: "json-pre log-json" }, JSON.stringify(ev.raw, null, 2))
+      : null,
+  );
+}
+
+function logTone(ev) {
+  const level = (ev.level || "").toLowerCase();
+  const outcome = (ev.outcome || "").toLowerCase();
+  if (level === "error" || outcome === "exception" || ev.error) return "error";
+  if (level === "warn" || level === "warning") return "warn";
+  if (typeof ev.status === "number" && ev.status >= 500) return "error";
+  if (typeof ev.status === "number" && ev.status >= 400) return "warn";
+  return "ok";
+}
+
+function logMeta(ev) {
+  const parts = [];
+  if (ev.eventType) parts.push(ev.eventType);
+  if (ev.status != null) parts.push(String(ev.status));
+  if (ev.outcome && ev.outcome !== "ok") parts.push(ev.outcome);
+  if (ev.wallTimeMs != null) parts.push(`${Math.round(ev.wallTimeMs)}ms`);
+  return parts.join(" · ") || "—";
+}
+
+function formatLogTime(ts) {
+  if (!ts) return "—";
+  const ms = ts < 1e12 ? ts * 1000 : ts;
+  return formatTime(new Date(ms).toISOString());
 }
 
 function metaCard(label, value) {

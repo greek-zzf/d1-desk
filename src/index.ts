@@ -12,6 +12,7 @@ import {
   listWorkers,
   putKvValue,
   queryD1,
+  queryWorkerLogs,
 } from "./cf";
 import { handleMailApi } from "./mail/api";
 import { handleMigrate } from "./mail/migrate";
@@ -451,6 +452,19 @@ async function handleWorkersApi(request: Request, session: Session, url: URL): P
     const workers = await listWorkers(session.token, session.accountId);
     workers.sort((a, b) => a.id.localeCompare(b.id));
     return json({ workers });
+  }
+
+  const logs = path.match(/^\/api\/workers\/([^/]+)\/logs$/);
+  if (logs && method === "GET") {
+    const name = decodeURIComponent(logs[1]);
+    const page = await queryWorkerLogs(session.token, session.accountId, name, {
+      since: url.searchParams.get("since") || undefined,
+      limit: Number(url.searchParams.get("limit") || 100) || 100,
+      q: url.searchParams.get("q") || undefined,
+      kind: url.searchParams.get("kind") || undefined,
+      offset: url.searchParams.get("offset") || undefined,
+    });
+    return json(page);
   }
 
   const detail = path.match(/^\/api\/workers\/([^/]+)$/);

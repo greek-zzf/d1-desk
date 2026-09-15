@@ -335,3 +335,165 @@ export async function getWorkerSettings(
     `/accounts/${accountId}/workers/scripts/${encodeURIComponent(scriptName)}/settings`,
   );
 }
+
+const LOG_WINDOWS: Record<string, number> = {
+  "15m": 15 * 60 * 1000,
+  "1h": 60 * 60 * 1000,
+  "6h": 6 * 60 * 60 * 1000,
+  "24h": 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+};
+
+export type WorkerLogQuery = {
+  since?: string;
+  limit?: number;
+  q?: string;
+  kind?: string;
+  offset?: string;
+};
+
+export type WorkerLogEvent = {
+  id: string | null;
+  timestamp: number;
+  level: string | null;
+  message: string | null;
+  error: string | null;
+  requestId: string | null;
+  scriptName: string | null;
+  outcome: string | null;
+  eventType: string | null;
+  status: string | number | null;
+  cpuTimeMs: number | null;
+  wallTimeMs: number | null;
+  raw: Record<string, unknown>;
+};
+
+export type WorkerLogsPage = {
+  events: WorkerLogEvent[];
+  count: number;
+  cursor: string | null;
+  hasMore: boolean;
+};
+
+type TelemetryQueryResult = {
+  events?: { events?: Record<string, unknown>[]; count?: number };
+};
+
+type LogFilter =
+  | { key: string; operation: string; type: "string" | "number" | "boolean"; value?: string | number | boolean }
+  | { kind: "group"; filterCombination: "or" | "and"; filters: LogFilter[] };
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+function asText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizeLogEvent(raw: Record<string, unknown>): WorkerLogEvent {
+  const meta = asRecord(raw.$metadata);
+  const worker = asRecord(raw.$workers);
+  const event = asRecord(worker?.event);
+  const response = asRecord(event?.response);
+  const status = response?.status ?? event?.status ?? meta?.statusCode ?? null;
+  return {
+    id: asText(meta?.id),
+    timestamp: asNumber(raw.timestamp) ?? asNumber(meta?.startTime) ?? 0,
+    level: asText(meta?.level),
+    message: asText(meta?.message),
+    error: asText(meta?.error),
+    requestId: asText(meta?.requestId) ?? asText(worker?.requestId),
+    scriptName: asText(worker?.scriptName) ?? asText(meta?.service),
+    outcome: asText(worker?.outcome),
+    eventType: asText(worker?.eventType),
+    status: typeof status === "number" || typeof status === "string" ? status : asText(status),
+    cpuTimeMs: asNumber(worker?.cpuTimeMs),
+    wallTimeMs: asNumber(worker?.wallTimeMs),
+    raw,
+  };
+}
+
+export async function queryWorkerLogs(
+  token: string,
+  accountId: string,
+  scriptName: string,
+  opts: WorkerLogQuery = {},
+): Promise<WorkerLogsPage> {
+  const now = Date.now();
+  const windowMs = LOG_WINDOWS[opts.since ?? ""] ?? LOG_WINDOWS["1h"];
+  const limit = Math.min(Math.max(opts.limit ?? 100, 10), 200);
+  const filters: LogFilter[] = [
+    {
+      kind: "group",
+      filterCombination: "or",
+      filters: [
+        { key: "$workers.scriptName", operation: "eq", type: "string", value: scriptName },
+        { key: "$metadata.service", operation: "eq", type: "string", value: scriptName },
+      ],
+    },
+  ];
+  if (opts.kind === "errors") {
+    filters.push({
+      kind: "group",
+      filterCombination: "or",
+      filters: [
+        { key: "$metadata.level", operation: "eq", type: "string", value: "error" },
+        { key: "$workers.outcome", operation: "eq", type: "string", value: "exception" },
+      ],
+    });
+  }
+  const parameters: Record<string, unknown> = {
+    filterCombination: "and",
+    filters,
+  };
+  const needle = opts.q?.trim();
+  if (needle) parameters.needle = { value: needle, isRegex: false, matchCase: false };
+
+  const body: Record<string, unknown> = {
+    queryId: `d1-desk-${now}`,
+    view: "events",
+    limit,
+    timeframe: { from: now - windowMs, to: now },
+    parameters,
+  };
+  if (opts.offset) body.offset = opts.offset;
+
+  let result: TelemetryQueryResult;
+  try {
+    result = await cfFetch<TelemetryQueryResult>(
+      token,
+      `/accounts/${accountId}/workers/observability/telemetry/query`,
+      { method: "POST", body: JSON.stringify(body) },
+    );
+  } catch (error) {
+    if (error instanceof CfApiError && (error.status === 401 || error.status === 403)) {
+      throw new CfApiError(
+        error.status,
+        "Token 缺少 Workers Observability 权限。请给 Token 加上 Account · Workers Observability · Write。",
+      );
+    }
+    throw error;
+  }
+
+  const raw = result?.events?.events ?? [];
+  const events = raw.map(normalizeLogEvent);
+  const last = events[events.length - 1];
+  return {
+    events,
+    count: result?.events?.count ?? events.length,
+    cursor: last?.id ?? null,
+    hasMore: events.length >= limit,
+  };
+}

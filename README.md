@@ -26,6 +26,7 @@ pnpm dev
    - Account · D1 · Edit
    - Account · Workers KV Storage · Edit（浏览 / 读写 KV）
    - Account · Workers Scripts · Read（列出 Workers 与 bindings）
+   - Account · Workers Observability · Write（查看 Worker 日志；官方 query API 要求 Write）
    - Account · Account Settings · Read
 4. 创建后复制一次，贴进 D1 Desk
 
@@ -57,7 +58,8 @@ openssl rand -base64 32
 登录后点顶栏 **Workers**：
 
 - 列出账号脚本（handlers、usage model、更新时间）
-- 点进详情查看 bindings、compatibility flags 与原始 settings
+- 点进详情查看最近日志、bindings、compatibility flags 与原始 settings
+- 日志走 Workers Observability API。被查看的 Worker 需要开启 `observability`，Token 需要 **Workers Observability · Write**。保留时间通常是免费 3 天 / 付费 7 天。
 
 ## 邮件
 
