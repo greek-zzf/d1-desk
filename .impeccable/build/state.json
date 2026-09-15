@@ -1,12 +1,12 @@
 {
   "tool": "build-phase",
   "version": 2,
-  "startedAt": "2026-09-11T16:58:40.905Z",
-  "comp": ".impeccable/mocks/comp-1-split-console.png",
+  "startedAt": "2026-09-15T17:04:09.895Z",
+  "comp": "/Users/zhouzhaofeng/project/d1-desk/.impeccable/mocks/decision/mail-assigned.png",
   "direction": null,
-  "breakpoint": "1376x768",
+  "breakpoint": "1280x720",
   "artifact": null,
-  "phase": "hero",
+  "phase": "spec",
   "phases": {
     "comps": {
       "status": "skipped",
@@ -15,7 +15,7 @@
       "attempts": 0,
       "notes": [
         {
-          "at": "2026-09-11T16:58:40.905Z",
+          "at": "2026-09-15T17:04:09.895Z",
           "text": "started with an approved comp; the comp round happened before this state (surface round or manual)"
         }
       ],
@@ -23,286 +23,31 @@
       "forced": null
     },
     "spec": {
-      "status": "closed",
-      "openedAt": "2026-09-11T16:58:40.905Z",
-      "closedAt": "2026-09-11T16:59:56.608Z",
-      "attempts": 2,
+      "status": "open",
+      "openedAt": "2026-09-15T17:04:09.895Z",
+      "closedAt": null,
+      "attempts": 0,
       "notes": [],
-      "gate": {
-        "ok": true,
-        "reasons": [],
-        "summary": "10 regions, 0 plates, 4 text regions measured",
-        "at": "2026-09-11T16:59:56.608Z"
-      },
+      "gate": null,
       "forced": null
     },
     "plates": {
-      "status": "closed",
-      "openedAt": "2026-09-11T16:59:56.608Z",
-      "closedAt": "2026-09-11T17:00:01.553Z",
-      "attempts": 1,
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
       "notes": [],
-      "gate": {
-        "ok": true,
-        "reasons": [],
-        "summary": "no plates owed",
-        "at": "2026-09-11T17:00:01.553Z"
-      },
+      "gate": null,
       "forced": null
     },
     "hero": {
-      "status": "open",
-      "openedAt": "2026-09-11T17:00:01.553Z",
+      "status": "pending",
+      "openedAt": null,
       "closedAt": null,
-      "attempts": 8,
+      "attempts": 0,
       "notes": [],
-      "gate": {
-        "ok": false,
-        "reasons": [
-          "control brand-badge drifts to 61% (structure 58%, color 72%): its chrome differs from the comp's; open .impeccable/review/diff/hero/regions/brand-badge.png and match the border, fill, radius, chevron or arrow, and label size",
-          "control permission-scopes drifts to 49% (structure 59%, color 63%): its chrome differs from the comp's; open .impeccable/review/diff/hero/regions/permission-scopes.png and match the border, fill, radius, chevron or arrow, and label size"
-        ],
-        "summary": "hero 75% (drift)",
-        "score": 0.753,
-        "verdict": "drift",
-        "report": ".impeccable/review/diff/hero/report.json",
-        "sideBySide": "/Users/zhouzhaofeng/project/d1-desk/.impeccable/review/diff/hero/side-by-side.png",
-        "worst": [
-          "permission-scopes drift 49%",
-          "brand-title drift 49%",
-          "token-label drift 55%"
-        ],
-        "worstIds": [
-          "permission-scopes",
-          "brand-title",
-          "token-label"
-        ],
-        "worstCrops": [
-          {
-            "id": "permission-scopes",
-            "verdict": "drift",
-            "score": {
-              "overall": 0.4911,
-              "structure": 0.5904,
-              "color": 0.6264,
-              "colorIntersection": 0.3504,
-              "paletteMatch": 0.7751,
-              "detail": 0.0306,
-              "detailRaw": 0.2493,
-              "detailAdded": 0.4375,
-              "bands": 0.3
-            },
-            "file": ".impeccable/review/diff/hero/regions/permission-scopes.png"
-          },
-          {
-            "id": "brand-title",
-            "verdict": "drift",
-            "score": {
-              "overall": 0.4913,
-              "structure": 0.3192,
-              "color": 0.82,
-              "colorIntersection": 0.7002,
-              "paletteMatch": 0.8845,
-              "detail": 0.3721,
-              "detailRaw": 0.4815,
-              "detailAdded": 0.2188,
-              "bands": 0.7086
-            },
-            "file": ".impeccable/review/diff/hero/regions/brand-title.png"
-          },
-          {
-            "id": "token-label",
-            "verdict": "drift",
-            "score": {
-              "overall": 0.5546,
-              "structure": 0.6708,
-              "color": 0.5618,
-              "colorIntersection": 0.1471,
-              "paletteMatch": 0.7852,
-              "detail": 0.2673,
-              "detailRaw": 0.2986,
-              "detailAdded": 0.0625,
-              "bands": 0.3867
-            },
-            "file": ".impeccable/review/diff/hero/regions/token-label.png"
-          }
-        ],
-        "advisories": [
-          "(advisory, above the 72% bar; fix in the polish pass before responsive) 2 readings:",
-          "  control token-input: its rule sits 20px into the box in the comp and 2px in the build (-18px), so the strip is shorter than the comp's; match the height, not only the position",
-          "  control submit-button: its rule sits 45px into the box in the comp and 1px in the build (-44px), so the strip is shorter than the comp's; match the height, not only the position"
-        ],
-        "regionVerdicts": {
-          "brand-title": "drift",
-          "brand-badge": "drift",
-          "topology-flow": "drift",
-          "security-heading": "drift",
-          "security-bullets": "drift",
-          "terminal-chrome": "drift",
-          "token-label": "drift",
-          "token-input": "drift",
-          "permission-scopes": "drift",
-          "submit-button": "drift"
-        },
-        "at": "2026-09-11T17:15:04.224Z"
-      },
-      "forced": null,
-      "readingsSeen": {
-        "text security-heading: cap height 11.4px in the build, 15.6px in the comp (-27%); set font-size so the cap height renders at 15.6px": 1,
-        "text security-bullets: cap height 10.7px in the build, 14.8px in the comp (-28%); set font-size so the cap height renders at 14.8px": 1,
-        "text security-bullets: 2 lines in the build, 3 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 3,
-        "text token-label: ink is #5e5e52 in the build, #a3a39d in the comp; use the comp's colour": 1,
-        "text security-bullets: its first line starts 28px lower than in the comp (28px vs 0px into the region box); the spacing above it is too large": 1,
-        "control brand-badge: its ink is 30px tall in the build and 16px in the comp (+14px); match the height, not only the position": 1,
-        "chrome terminal-chrome: its rule sits 52px into the box in the comp and 26px in the build (-26px), so the strip is shorter than the comp's; match the height, not only the position": 1,
-        "control token-input: its rule sits 20px into the box in the comp and 30px in the build (+10px), so the strip is taller than the comp's; match the height, not only the position": 1,
-        "control permission-scopes: its rule sits 8px into the box in the comp and 1px in the build (-7px), so the strip is shorter than the comp's; match the height, not only the position": 1,
-        "text security-bullets: cap height 10.8px in the build, 14.8px in the comp (-27%); set font-size so the cap height renders at 14.8px": 1,
-        "text security-bullets: its first line starts 18px lower than in the comp (18px vs 0px into the region box); the spacing above it is too large": 1,
-        "chrome terminal-chrome: its ink is 154px tall in the build and 18px in the comp (+136px); match the height, not only the position": 1,
-        "control token-input: its rule sits 20px into the box in the comp and 2px in the build (-18px), so the strip is shorter than the comp's; match the height, not only the position": 2,
-        "control submit-button: its rule sits 45px into the box in the comp and 51px in the build (+6px), so the strip is taller than the comp's; match the height, not only the position": 1,
-        "text security-heading: the face renders 25% heavier than the comp's (ink density 0.48 vs 0.38); drop a weight step or use the ranked face": 1,
-        "control token-input: its rule sits 20px into the box in the comp and 38px in the build (+18px), so the strip is taller than the comp's; match the height, not only the position": 1,
-        "control submit-button: its rule sits 45px into the box in the comp and 6px in the build (-39px), so the strip is shorter than the comp's; match the height, not only the position": 1,
-        "control submit-button: its rule sits 45px into the box in the comp and 18px in the build (-27px), so the strip is shorter than the comp's; match the height, not only the position": 1,
-        "control token-input: its rule sits 20px into the box in the comp and 28px in the build (+8px), so the strip is taller than the comp's; match the height, not only the position": 1,
-        "control submit-button: its rule sits 45px into the box in the comp and 1px in the build (-44px), so the strip is shorter than the comp's; match the height, not only the position": 2
-      },
-      "history": [
-        {
-          "at": "2026-09-11T17:01:50.698Z",
-          "score": 0.5096,
-          "worstIds": [
-            "submit-button",
-            "brand-badge",
-            "brand-title"
-          ],
-          "regionVerdicts": {
-            "brand-title": "contradicted",
-            "brand-badge": "contradicted",
-            "topology-flow": "contradicted",
-            "security-heading": "missing",
-            "security-bullets": "missing",
-            "terminal-chrome": "missing",
-            "token-label": "missing",
-            "token-input": "missing",
-            "permission-scopes": "missing",
-            "submit-button": "missing"
-          },
-          "artifactHash": null
-        },
-        {
-          "at": "2026-09-11T17:04:10.250Z",
-          "score": 0.5916,
-          "worstIds": [
-            "submit-button",
-            "brand-title",
-            "terminal-chrome"
-          ],
-          "regionVerdicts": {
-            "brand-title": "contradicted",
-            "brand-badge": "missing",
-            "topology-flow": "drift",
-            "security-heading": "missing",
-            "security-bullets": "missing",
-            "terminal-chrome": "missing",
-            "token-label": "missing",
-            "token-input": "missing",
-            "permission-scopes": "contradicted",
-            "submit-button": "contradicted"
-          },
-          "artifactHash": null
-        },
-        {
-          "at": "2026-09-11T17:09:16.744Z",
-          "score": 0.7196,
-          "worstIds": [
-            "brand-title",
-            "security-heading",
-            "security-bullets"
-          ],
-          "regionVerdicts": {
-            "brand-title": "contradicted",
-            "brand-badge": "drift",
-            "topology-flow": "drift",
-            "security-heading": "drift",
-            "security-bullets": "drift",
-            "terminal-chrome": "drift",
-            "token-label": "drift",
-            "token-input": "drift",
-            "permission-scopes": "missing",
-            "submit-button": "drift"
-          },
-          "artifactHash": null
-        },
-        {
-          "at": "2026-09-11T17:11:20.480Z",
-          "score": 0.7231,
-          "worstIds": [
-            "permission-scopes",
-            "submit-button",
-            "token-label"
-          ],
-          "regionVerdicts": {
-            "brand-title": "drift",
-            "brand-badge": "drift",
-            "topology-flow": "drift",
-            "security-heading": "drift",
-            "security-bullets": "missing",
-            "terminal-chrome": "drift",
-            "token-label": "missing",
-            "token-input": "drift",
-            "permission-scopes": "contradicted",
-            "submit-button": "missing"
-          },
-          "artifactHash": null
-        },
-        {
-          "at": "2026-09-11T17:12:46.547Z",
-          "score": 0.7772,
-          "worstIds": [
-            "brand-title",
-            "token-label",
-            "security-bullets"
-          ],
-          "regionVerdicts": {
-            "brand-title": "drift",
-            "brand-badge": "drift",
-            "topology-flow": "drift",
-            "security-heading": "drift",
-            "security-bullets": "drift",
-            "terminal-chrome": "drift",
-            "token-label": "drift",
-            "token-input": "missing",
-            "permission-scopes": "drift",
-            "submit-button": "drift"
-          },
-          "artifactHash": null
-        },
-        {
-          "at": "2026-09-11T17:15:04.224Z",
-          "score": 0.753,
-          "worstIds": [
-            "permission-scopes",
-            "brand-title",
-            "token-label"
-          ],
-          "regionVerdicts": {
-            "brand-title": "drift",
-            "brand-badge": "drift",
-            "topology-flow": "drift",
-            "security-heading": "drift",
-            "security-bullets": "drift",
-            "terminal-chrome": "drift",
-            "token-label": "drift",
-            "token-input": "drift",
-            "permission-scopes": "drift",
-            "submit-button": "drift"
-          },
-          "artifactHash": null
-        }
-      ]
+      "gate": null,
+      "forced": null
     },
     "sections": {
       "status": "pending",
@@ -341,6 +86,5 @@
       "forced": null
     }
   },
-  "finish": null,
-  "plates": {}
+  "finish": null
 }

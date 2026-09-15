@@ -675,6 +675,13 @@ a { color: var(--accent); }
   white-space: nowrap;
 }
 .btn:hover { border-color: var(--accent); }
+.btn:focus-visible,
+.table-item:focus-visible,
+.mail-item:focus-visible,
+.mail-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary {
   background: var(--accent);
@@ -698,6 +705,7 @@ a { color: var(--accent); }
 
 /* Shell */
 .shell { min-height: 100vh; min-width: 0; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+.shell > * { min-width: 0; }
 .top {
   display: flex;
   align-items: center;
@@ -709,6 +717,7 @@ a { color: var(--accent); }
   position: sticky;
   top: 0;
   z-index: 10;
+  overflow-x: auto;
 }
 .brand {
   font-family: var(--serif);
@@ -795,6 +804,12 @@ a { color: var(--accent); }
   gap: 8px;
 }
 .table-item:hover, .table-item.active { background: var(--bg-4); }
+.table-item.mailbox.active,
+.table-item.mailbox.active:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.table-item.mailbox.active .kind { color: var(--accent-ink); opacity: 0.7; }
 .table-item .name { overflow: hidden; text-overflow: ellipsis; }
 .table-item .kind { color: var(--faint); font-size: 11px; }
 
@@ -807,7 +822,15 @@ a { color: var(--accent); }
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
 }
-.main-bar h2 { margin: 0; font-size: 14px; }
+.main-bar h2 {
+  margin: 0;
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mail-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .tabs { display: flex; gap: 4px; background: var(--bg-2); padding: 3px; border-radius: 999px; border: 1px solid var(--line); }
 .tab {
   border: 0;
@@ -1028,7 +1051,6 @@ table.data td input {
 @media (max-width: 840px) {
   .work { grid-template-columns: 1fr; }
   .side { border-right: 0; border-bottom: 1px solid var(--line); max-height: 280px; }
-  .mail-work, .mail-work.with-agent { grid-template-columns: 1fr; }
 }
 
 .mail-hero { margin-bottom: 8px; }
@@ -1129,12 +1151,9 @@ table.data td input {
 
 .mail-work {
   display: grid;
-  grid-template-columns: 220px 340px minmax(0, 1fr);
+  grid-template-columns: 200px 340px minmax(0, 1fr);
   min-height: calc(100vh - 53px);
   min-width: 0;
-}
-.mail-work.with-agent {
-  grid-template-columns: 200px 280px minmax(0, 1fr) 320px;
 }
 .mail-list, .mail-reader {
   min-width: 0;
@@ -1144,8 +1163,33 @@ table.data td input {
   grid-template-rows: auto minmax(0, 1fr) auto;
   border-right: 1px solid var(--line);
 }
-.mail-reader { border-right: 0; grid-template-rows: auto minmax(0, 1fr); }
-.mail-items, .mail-thread { overflow: auto; min-height: 0; }
+.mail-reader {
+  border-right: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.mail-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.mail-items, .mail-thread, .table-list, .agent-log {
+  overflow: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-4) transparent;
+}
+.mail-mobile-nav,
+.mail-back { display: none; }
+.mail-select {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: inherit;
+}
 .mail-item {
   width: 100%;
   text-align: left;
@@ -1153,18 +1197,28 @@ table.data td input {
   border: 0;
   border-bottom: 1px solid var(--line);
   color: inherit;
-  padding: 12px 14px;
+  padding: 8px 12px;
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 .mail-item:hover, .mail-item.active { background: var(--bg-3); }
-.mail-item.unread .mail-subject, .mail-item.unread .mail-from { color: var(--accent); }
+.mail-item.unread .mail-from {
+  color: var(--accent);
+  font-weight: 600;
+}
+.mail-item.unread .mail-subject { font-weight: 600; }
 .mail-item-top { display: flex; justify-content: space-between; gap: 8px; }
 .mail-from { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mail-date { color: var(--faint); font-size: 11px; white-space: nowrap; }
 .mail-subject { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mail-snippet { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mail-thread { padding: 16px; display: grid; gap: 16px; align-content: start; }
+.mail-thread {
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.mail-work.with-agent .mail-thread { padding-right: min(336px, 44%); }
 .mail-card {
   background: var(--bg-2);
   border: 1px solid var(--line);
@@ -1188,13 +1242,27 @@ table.data td input {
 .check { display: flex; align-items: center; gap: 8px; color: var(--ink); }
 
 .agent-pane {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(320px, 42%);
+  z-index: 5;
   min-width: 0;
-  min-height: 0;
   overflow: hidden;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   border-left: 1px solid var(--line);
   background: var(--bg-2);
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.35);
+  animation: mail-agent-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes mail-agent-in {
+  from { transform: translateX(16px); opacity: 0.55; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-pane { animation: none; }
 }
 .agent-log { overflow: auto; padding: 12px; display: grid; gap: 10px; align-content: start; }
 .agent-bubble { display: grid; gap: 6px; max-width: 100%; }
@@ -1227,3 +1295,24 @@ table.data td input {
   align-items: end;
 }
 .agent-input textarea { min-height: 52px; resize: vertical; }
+
+.mail-list .empty .btn { margin-top: 16px; }
+
+@media (max-width: 840px) {
+  .mail-work {
+    grid-template-columns: 1fr;
+  }
+  .mail-work .side { display: none; }
+  .mail-mobile-nav {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px 0;
+  }
+  .mail-list { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+  .mail-work:not(.reading) .mail-reader { display: none; }
+  .mail-work.reading .mail-list { display: none; }
+  .mail-back { display: inline-flex; }
+  .mail-actions { flex: 1 1 100%; }
+  .agent-pane { width: 100%; }
+  .mail-work.with-agent .mail-thread { padding-right: 16px; }
+}

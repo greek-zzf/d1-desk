@@ -1,0 +1,50 @@
+{
+  "title": "Choose the mail layout",
+  "question": "Three structures for D1 Desk mail. Lock one, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "三栏 + Agent 覆盖",
+      "kicker": "THE ROLL",
+      "lineage": "current mail workbench, Agent demoted to a sheet",
+      "thesis": "邮箱轨、列表、正文三栏保留；Agent 不再占第四列。",
+      "palette": ["#171820", "#1e1f26", "#d8f848", "#f7f7f7"],
+      "materials": ["IBM Plex Mono", "hairline #2a2c38", "LEDGER top bar", "lime unread"],
+      "viewport": "顶栏 D1 Desk LEDGER。左 200px 邮箱+文件夹，当前邮箱整行反相黄底。中栏密排未读，发件人加粗、主题常规、日期淡。右栏线程，回复与归档并列为第一动作。Agent 只在打开信件后从右侧滑过正文。",
+      "risk": "三栏在笔记本上仍会挤列表；邮箱轨可能继续抢扫描宽度。",
+      "raised": [
+        {
+          "from": "timetable-slide-rack",
+          "raise": "列表用字重和大小写分等级，不靠更大字号；当前邮箱是轨上唯一反相格。"
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/mail-assigned.webp"
+    },
+    {
+      "id": "river",
+      "label": "跨邮箱线索河",
+      "lineage": "one river of threads, mailbox as a chip",
+      "thesis": "所有邮箱合成一条按时间排的线索流，文件夹变成顶栏过滤。",
+      "palette": ["#171820", "#1e1f26", "#d8f848", "#f7f7f7"],
+      "materials": ["IBM Plex Mono", "hairline #2a2c38", "LEDGER top bar", "mailbox chips"],
+      "viewport": "顶栏之下是邮箱 chips 和 收件箱/已发送/草稿 过滤。主区是全宽线索行：发件人、邮箱 chip、主题、时间。点开一行，右侧推出阅读器；Agent 贴在阅读器上，不占默认列。",
+      "risk": "多站点邮箱混在一起，想只看某一个域名时要多点一次过滤。",
+      "comp": ".impeccable/mocks/decision/mail-river.webp"
+    },
+    {
+      "id": "queue",
+      "label": "一封一封清",
+      "lineage": "unread rail plus current letter",
+      "thesis": "当前这封信占满屏幕；未读是左侧细轨，处理完就进下一封。",
+      "palette": ["#171820", "#1e1f26", "#d8f848", "#f7f7f7"],
+      "materials": ["IBM Plex Mono", "hairline #2a2c38", "LEDGER top bar", "inline reply"],
+      "viewport": "顶栏 D1 Desk LEDGER，邮箱切换是轨顶一个下拉。左 ~240px 未读轨只显示发件人和主题。其余是打开的线程，底部内联回复，归档即 Done 并载入下一封。Agent 是回复框上方一条，默认收起。",
+      "risk": "几十封未读跨多个邮箱时，一次只能看见一条发件人，扫描变慢。",
+      "comp": ".impeccable/mocks/decision/mail-queue.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "comp", "toggle": true },
+  "canon": false,
+  "steer": true
+}

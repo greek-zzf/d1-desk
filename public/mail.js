@@ -23,7 +23,7 @@ export const mail = {
   createOpen: false,
   createEmail: "",
   createName: "",
-  agentOpen: true,
+  agentOpen: false,
   agentMessages: [],
   agentInput: "",
   agentBusy: false,
@@ -44,6 +44,7 @@ export function resetMail() {
     thread: [],
     compose: null,
     createOpen: false,
+    agentOpen: false,
     agentMessages: [],
     agentInput: "",
     agentBusy: false,
@@ -76,6 +77,7 @@ export async function loadMailRoute(loc) {
     mail.emails = [];
     mail.selected = null;
     mail.thread = [];
+    mail.agentOpen = false;
     mail.agentMessages = [];
     return;
   }
@@ -93,12 +95,14 @@ export async function loadMailRoute(loc) {
   } else {
     mail.selected = null;
     mail.thread = [];
+    mail.agentOpen = false;
   }
 }
 
 async function openEmail(id, pushHash = true) {
   const data = await api(`/api/mail/mailboxes/${encodeURIComponent(mail.mailboxId)}/emails/${encodeURIComponent(id)}`);
   mail.selected = data.email;
+  mail.agentOpen = window.matchMedia("(min-width: 841px)").matches;
   if (data.email?.thread_id) {
     const thread = await api(
       `/api/mail/mailboxes/${encodeURIComponent(mail.mailboxId)}/threads/${encodeURIComponent(data.email.thread_id)}`,
@@ -126,11 +130,13 @@ function snippet(email) {
 }
 
 export function mailView() {
-  return h("div", { class: `mail-work ${mail.agentOpen ? "with-agent" : ""}` },
+  const reading = Boolean(mail.selected);
+  return h("div", {
+    class: `mail-work${reading ? " reading" : ""}${mail.agentOpen && reading ? " with-agent" : ""}`,
+  },
     mailboxSide(),
     listPane(),
     readerPane(),
-    mail.agentOpen ? agentPane() : null,
     mail.compose ? composeModal() : null,
     mail.createOpen ? createModal() : null,
     mail.settingsOpen ? settingsModal() : null,
@@ -148,27 +154,23 @@ function mailboxSide() {
       mail.mailboxId
         ? h("button", { class: "btn btn-wide", onClick: openSettings }, "Agent 设置")
         : null,
-      h("button", {
-        class: "btn btn-wide",
-        onClick: () => { mail.agentOpen = !mail.agentOpen; renderApp(); },
-      }, mail.agentOpen ? "收起 Agent" : "打开 Agent"),
     ),
     h("div", { class: "table-list" },
       mail.mailboxes.length === 0
-        ? h("div", { class: "side-empty" }, "还没有邮箱。创建一个地址，并把 Email Routing 指到这个 Worker。")
+        ? h("div", { class: "side-empty" }, "还没有邮箱。点上面新建一个地址，再把 Email Routing catch-all 指到这个 Worker。")
         : mail.mailboxes.map((m) =>
             h("button", {
-              class: `table-item ${mail.mailboxId === m.id ? "active" : ""}`,
+              class: `table-item mailbox ${mail.mailboxId === m.id ? "active" : ""}`,
               onClick: () => { mail.offset = 0; go(`/mail/${encodeURIComponent(m.id)}/inbox`); },
-            }, h("span", { class: "name" }, m.name || m.id), h("span", { class: "kind" }, m.id.split("@")[0])),
+            }, h("span", { class: "name" }, m.id), h("span", { class: "kind" }, m.name && m.name !== m.id ? m.name : m.id.split("@")[0])),
           ),
       h("div", { class: "kicker", style: "padding:14px 10px 6px" }, "文件夹"),
       ...FOLDERS.map((f) =>
         h("button", {
-          class: `table-item ${mail.folder === f.id && mail.mailboxId ? "active" : ""}`,
+          class: `table-item folder ${mail.folder === f.id && mail.mailboxId ? "active" : ""}`,
           disabled: !mail.mailboxId,
           onClick: () => { mail.offset = 0; go(`/mail/${encodeURIComponent(mail.mailboxId)}/${f.id}`); },
-        }, h("span", { class: "name" }, f.name), h("span", { class: "kind" }, f.id)),
+        }, h("span", { class: "name" }, f.name)),
       ),
     ),
   );
@@ -177,9 +179,26 @@ function mailboxSide() {
 function listPane() {
   const start = mail.total === 0 ? 0 : mail.offset + 1;
   const end = Math.min(mail.offset + mail.emails.length, mail.total);
+  const folderName = FOLDERS.find((f) => f.id === mail.folder)?.name || mail.folder;
   return h("section", { class: "mail-list" },
+    h("div", { class: "mail-mobile-nav" },
+      h("select", {
+        class: "mail-select",
+        disabled: mail.mailboxes.length === 0,
+        onChange: (e) => { mail.offset = 0; go(`/mail/${encodeURIComponent(e.target.value)}/inbox`); },
+      },
+        mail.mailboxes.length === 0
+          ? h("option", {}, "没有邮箱")
+          : mail.mailboxes.map((m) => h("option", { value: m.id, selected: m.id === mail.mailboxId }, m.id)),
+      ),
+      h("select", {
+        class: "mail-select",
+        disabled: !mail.mailboxId,
+        onChange: (e) => { mail.offset = 0; go(`/mail/${encodeURIComponent(mail.mailboxId)}/${e.target.value}`); },
+      }, ...FOLDERS.map((f) => h("option", { value: f.id, selected: f.id === mail.folder }, f.name))),
+    ),
     h("div", { class: "main-bar" },
-      h("h2", {}, FOLDERS.find((f) => f.id === mail.folder)?.name || mail.folder),
+      h("h2", {}, folderName),
       h("div", { class: "grow" }),
       h("button", {
         class: "btn btn-primary",
@@ -189,7 +208,15 @@ function listPane() {
     ),
     h("div", { class: "mail-items" },
       mail.emails.length === 0
-        ? h("div", { class: "empty" }, h("h3", {}, "没有邮件"), h("p", {}, "把域名的 Email Routing catch-all 指到这个 Worker，并先创建一个邮箱地址。"))
+        ? h("div", { class: "empty" },
+            h("h3", {}, mail.mailboxId ? "没有邮件" : "还没有邮箱"),
+            h("p", {}, mail.mailboxId
+              ? "这层文件夹是空的。把域名的 Email Routing catch-all 指到这个 Worker，新信会出现在收件箱。"
+              : "先创建一个邮箱地址，再把域名 Email Routing 的 catch-all 指到这个 Worker。"),
+            mail.mailboxId
+              ? null
+              : h("button", { class: "btn btn-primary", onClick: () => { mail.createOpen = true; renderApp(); } }, "新建邮箱"),
+          )
         : mail.emails.map((email) =>
             h("button", {
               class: `mail-item ${mail.selected?.id === email.id ? "active" : ""} ${email.read ? "" : "unread"}`,
@@ -227,21 +254,41 @@ function currentFolderHash() {
 function readerPane() {
   if (!mail.selected) {
     return h("section", { class: "mail-reader" },
-      h("div", { class: "empty" }, h("h3", {}, "选择一封邮件"), h("p", {}, "从中间列表打开，或点右上角写一封新的。")),
+      h("div", { class: "empty" },
+        h("h3", {}, "选择一封邮件"),
+        h("p", {}, "从列表打开一封。打开后可以回复或归档；Agent 会在这时出现。"),
+      ),
     );
   }
   const email = mail.selected;
   return h("section", { class: "mail-reader" },
     h("div", { class: "main-bar" },
+      h("button", {
+        class: "btn mail-back",
+        onClick: () => {
+          mail.selected = null;
+          mail.thread = [];
+          mail.agentOpen = false;
+          go(currentFolderHash());
+        },
+      }, "列表"),
       h("h2", {}, email.subject || "(无主题)"),
       h("div", { class: "grow" }),
-      h("button", { class: "btn", onClick: () => openCompose({ mode: "reply", email }) }, "回复"),
-      h("button", { class: "btn", onClick: () => openCompose({ mode: "forward", email }) }, "转发"),
-      h("button", { class: "btn", onClick: () => moveSelected("archive") }, "归档"),
-      h("button", { class: "btn btn-danger", onClick: () => moveSelected("trash") }, "删除"),
+      h("div", { class: "mail-actions" },
+        h("button", { class: "btn btn-primary", onClick: () => openCompose({ mode: "reply", email }) }, "回复"),
+        h("button", { class: "btn btn-primary", onClick: () => moveSelected("archive") }, "归档"),
+        h("button", { class: "btn", onClick: () => openCompose({ mode: "forward", email }) }, "转发"),
+        h("button", { class: "btn btn-danger", onClick: () => moveSelected("trash") }, "删除"),
+        mail.agentOpen
+          ? null
+          : h("button", { class: "btn", onClick: () => { mail.agentOpen = true; renderApp(); } }, "Agent"),
+      ),
     ),
-    h("div", { class: "mail-thread" },
-      ...mail.thread.map((msg) => messageCard(msg)),
+    h("div", { class: "mail-stage" },
+      h("div", { class: "mail-thread" },
+        ...mail.thread.map((msg) => messageCard(msg)),
+      ),
+      mail.agentOpen ? agentPane() : null,
     ),
   );
 }
@@ -307,6 +354,7 @@ function openCompose(opts = {}) {
     body = `\n\n---------- Forwarded message ----------\nFrom: ${email.sender}\nDate: ${email.date}\nSubject: ${email.subject}\n\n`;
   }
   mail.compose = { mode, email, to, cc: "", subject, body, files: [] };
+  if (mode === "reply" || mode === "forward") mail.agentOpen = true;
   renderApp();
 }
 
@@ -449,13 +497,24 @@ async function submitCompose() {
 async function moveSelected(folderId) {
   if (!mail.selected) return;
   await withBusy(async () => {
+    const id = mail.selected.id;
+    const idx = mail.emails.findIndex((e) => e.id === id);
+    const next = (idx >= 0 ? mail.emails[idx + 1] : null) || (idx > 0 ? mail.emails[idx - 1] : null);
     await api(
-      `/api/mail/mailboxes/${encodeURIComponent(mail.mailboxId)}/emails/${encodeURIComponent(mail.selected.id)}/move`,
+      `/api/mail/mailboxes/${encodeURIComponent(mail.mailboxId)}/emails/${encodeURIComponent(id)}/move`,
       { body: { folderId } },
     );
     toast(folderId === "trash" ? "已移到废纸篓" : "已归档");
-    mail.selected = null;
-    go(currentFolderHash());
+    mail.emails = mail.emails.filter((e) => e.id !== id);
+    mail.total = Math.max(0, mail.total - 1);
+    if (next && next.id !== id) {
+      await openEmail(next.id);
+    } else {
+      mail.selected = null;
+      mail.thread = [];
+      mail.agentOpen = false;
+      go(currentFolderHash());
+    }
   });
 }
 
@@ -481,6 +540,10 @@ function agentPane() {
         disabled: !mail.mailboxId || mail.agentBusy,
         onClick: clearAgent,
       }, "清空"),
+      h("button", {
+        class: "btn",
+        onClick: () => { mail.agentOpen = false; renderApp(); },
+      }, "关闭"),
     ),
     h("div", { class: "agent-log", id: "agent-log" },
       mail.agentMessages.length === 0
