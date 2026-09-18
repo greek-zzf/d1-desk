@@ -86,3 +86,7 @@ curl --request POST 'http://localhost:8788/cdn-cgi/handler/email' \
 | ⌘K / Ctrl+K | 切换数据库 |
 | ⌘↵ / Ctrl+Enter | 运行 SQL |
 | 双击单元格 | 编辑并保存 |
+
+## License
+
+本项目以 [MIT License](LICENSE) 开源。
