@@ -152,9 +152,36 @@ function dataTableAttrs(names) {
   return attrs;
 }
 
-function headerTh(name, label, { sortable = false } = {}) {
+function isNumCol(col) {
+  return /INT|REAL|FLOA|DOUB|NUM|DEC/i.test(col?.type || "");
+}
+
+const STATUS_TONE = {
+  paid: "paid", success: "paid", ok: "paid", active: "paid", completed: "paid",
+  pending: "pending", processing: "pending",
+  refunded: "refunded", cancelled: "refunded", canceled: "refunded", inactive: "refunded",
+  failed: "failed", error: "failed",
+};
+
+function statusClass(col, text) {
+  if (text == null) return "";
+  const key = String(text).trim().toLowerCase();
+  if (!key || key.length > 24) return "";
+  const tone = STATUS_TONE[key];
+  const named = /(^|_)(status|state)$/i.test(col) || col === "状态";
+  if (tone) return `st st-${tone}`;
+  if (named && !/\s/.test(key)) return "st";
+  return "";
+}
+
+function headerTh(name, label, { sortable = false, type = "", numeric = false } = {}) {
+  const classes = [
+    sortable ? "sortable" : "",
+    sortable && state.orderBy === name ? "sorted" : "",
+    numeric ? "num" : "",
+  ].filter(Boolean).join(" ");
   return h("th", {
-    class: sortable ? "sortable" : "",
+    class: classes,
     dataset: { col: name },
     title: sortable ? "点击排序，拖动右侧边框调整列宽" : "拖动右侧边框调整列宽",
     onClick: sortable
@@ -164,7 +191,11 @@ function headerTh(name, label, { sortable = false } = {}) {
         withBusy(loadRows);
       }
       : undefined,
-  }, h("span", { class: "th-label" }, label), colResizer(name));
+  },
+    h("span", { class: "th-label" }, label),
+    type ? h("span", { class: "th-type" }, type) : null,
+    colResizer(name),
+  );
 }
 
 function colResizer(name) {
@@ -393,25 +424,25 @@ export async function withBusy(fn) {
 }
 
 const ICONS = {
-  shield: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
-  storage: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="4" x2="12" y2="8"/></svg>`,
-  disk: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><line x1="7" y1="15" x2="7.01" y2="15" stroke-width="3"/><line x1="10" y1="15" x2="10.01" y2="15" stroke-width="3"/><line x1="17" y1="9" x2="7" y2="9"/></svg>`,
-  chip: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>`,
-  keyBig: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>`,
-  docBig: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
-  db: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
-  kv: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 8v8M8 12l4-4M8 12l4 4M15 8v8"/></svg>`,
-  workers: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg>`,
-  mail: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
-  key: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3a39d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>`,
-  eye: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3a39d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
-  eyeOff: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3a39d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`,
+  shield: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  storage: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="4" x2="12" y2="8"/></svg>`,
+  disk: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><line x1="7" y1="15" x2="7.01" y2="15" stroke-width="3"/><line x1="10" y1="15" x2="10.01" y2="15" stroke-width="3"/><line x1="17" y1="9" x2="7" y2="9"/></svg>`,
+  chip: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>`,
+  keyBig: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>`,
+  docBig: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  db: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
+  kv: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 8v8M8 12l4-4M8 12l4 4M15 8v8"/></svg>`,
+  workers: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg>`,
+  mail: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+  key: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a675f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>`,
+  eye: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7a675f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeOff: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7a675f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`,
   extLink: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`,
   check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
   arrowLeft: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`,
   alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
   spinner: `<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>`,
-  topoArrow: `<svg width="42" height="14" viewBox="0 0 42 14" fill="none"><line x1="0" y1="7" x2="36" y2="7" stroke="#d8f848" stroke-width="2"/><polyline points="30 2 37 7 30 12" stroke="#d8f848" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  topoArrow: `<svg width="42" height="14" viewBox="0 0 42 14" fill="none"><line x1="0" y1="7" x2="36" y2="7" stroke="#0f6a62" stroke-width="2"/><polyline points="30 2 37 7 30 12" stroke="#0f6a62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
 
 function loginView() {
@@ -441,11 +472,11 @@ function loginView() {
         ),
         // Branching SVG connector
         h("svg", { class: "topo-branch-svg", viewBox: "0 0 80 200", fill: "none" },
-          h("path", { d: "M 0 100 L 25 100", stroke: "#d8f848", "stroke-width": "2" }),
-          h("path", { d: "M 25 100 C 45 100 50 25 75 25", stroke: "#d8f848", "stroke-width": "2" }),
-          h("path", { d: "M 25 100 C 45 100 50 75 75 75", stroke: "#d8f848", "stroke-width": "2" }),
-          h("path", { d: "M 25 100 C 45 100 50 125 75 125", stroke: "#d8f848", "stroke-width": "2" }),
-          h("path", { d: "M 25 100 C 45 100 50 175 75 175", stroke: "#d8f848", "stroke-width": "2" }),
+          h("path", { d: "M 0 100 L 25 100", stroke: "#0f6a62", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 25 75 25", stroke: "#0f6a62", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 75 75 75", stroke: "#0f6a62", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 125 75 125", stroke: "#0f6a62", "stroke-width": "2" }),
+          h("path", { d: "M 25 100 C 45 100 50 175 75 175", stroke: "#0f6a62", "stroke-width": "2" }),
         ),
         // Cloudflare Edge destination box
         h("div", { class: "topo-cf-box" },
@@ -579,7 +610,7 @@ function loginView() {
                     h("label", { for: "token" }, "API token"),
                   ),
                   h("div", { class: "token-input-shell" },
-                    h("span", { class: "token-prefix-key", html: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0b2b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>` }),
+                    h("span", { class: "token-prefix-key", html: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7a675f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3M18.5 4.5l3 3"/></svg>` }),
                     h("input", {
                       id: "token",
                       type: state.showToken ? "text" : "password",
@@ -667,20 +698,44 @@ async function onLogin(e) {
   });
 }
 
+function initials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "·";
+  if (parts.length === 1) return [...parts[0]].slice(0, 2).join("").toUpperCase();
+  return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+}
+
 function topbar() {
   const hash = location.hash;
-  const nav = (href, label) =>
-    h("a", { class: `btn ${hash === href || hash.startsWith(`${href}/`) ? "btn-primary" : ""}`, href }, label);
+  const on = (href) => hash === href || hash.startsWith(`${href}/`);
+  const onD1 = !on("#/mail") && !on("#/kv") && !on("#/workers");
+  const item = (href, label, active) => h("a", { class: `nav-i${active ? " on" : ""}`, href }, label);
+  const accountName = state.session?.accountName || "";
   return h("header", { class: "top" },
-    h("a", { class: "brand", href: "#/" }, "D1 Desk", h("span", {}, "LEDGER")),
-    nav("#/mail", "邮件"),
-    nav("#/kv", "KV"),
-    nav("#/workers", "Workers"),
-    h("button", { class: "btn", onClick: () => { state.palette = true; state.paletteQ = ""; state.paletteIndex = 0; render(); document.getElementById("palette-q")?.focus(); } },
-      "切换数据库", h("span", { class: "kbd" }, "⌘K"),
+    h("a", { class: "brand", href: "#/" },
+      h("svg", {
+        class: "mark",
+        viewBox: "0 0 32 32",
+        "aria-hidden": "true",
+        html: `<rect class="mark-bg" width="32" height="32" rx="7"/><path class="mark-fg" d="M8 9h16v3H8zm0 5.5h10v3H8zM8 20h16v3H8z"/>`,
+      }),
+      h("b", {}, "D1 Desk"),
+      h("span", { class: "ledger" }, "LEDGER"),
+    ),
+    h("nav", { class: "nav" },
+      item("#/", "D1", onD1),
+      item("#/kv", "KV", on("#/kv")),
+      item("#/workers", "Workers", on("#/workers")),
+      item("#/mail", "邮件", on("#/mail")),
+    ),
+    h("button", { class: "btn switch", onClick: () => { state.palette = true; state.paletteQ = ""; state.paletteIndex = 0; render(); document.getElementById("palette-q")?.focus(); } },
+      "切换数据库", h("kbd", {}, "⌘K"),
     ),
     h("div", { class: "top-space" }),
-    h("div", { class: "account" }, state.session?.accountName || ""),
+    h("div", { class: "account" },
+      h("span", { class: "acct-av" }, initials(accountName)),
+      h("span", {}, accountName),
+    ),
     h("button", { class: "btn btn-ghost", onClick: logout }, "退出"),
   );
 }
@@ -761,6 +816,11 @@ function workspace() {
       h("div", { class: "side-head" },
         h("div", { class: "kicker" }, "DATABASE"),
         h("h2", {}, state.db?.name || ""),
+        h("div", { class: "side-meta" },
+          state.db?.file_size != null ? h("span", {}, formatBytes(state.db.file_size)) : null,
+          state.db?.num_tables != null ? h("span", {}, `${state.db.num_tables} 张表`) : null,
+        ),
+        state.db?.uuid ? h("div", { class: "uuid" }, state.db.uuid) : null,
       ),
       h("div", { class: "side-tools" },
         h("input", {
@@ -802,8 +862,14 @@ function mainBar() {
       ),
     );
   }
+  const title = state.table || (state.view === "sql" ? "SQL" : "选择一张表");
   return h("div", { class: "main-bar" },
-    h("h2", {}, state.table || (state.view === "sql" ? "SQL" : "选择一张表")),
+    h("div", { class: "title" },
+      h("h2", {}, title),
+      state.view === "browse" && state.table
+        ? h("span", { class: "rows-total" }, `${Number(state.total || 0).toLocaleString("zh-CN")} 行`)
+        : null,
+    ),
     ...tabs,
     h("div", { class: "grow" }),
     state.view === "browse" && state.table
@@ -882,7 +948,11 @@ function browsePane() {
               }),
             ),
             ...cols.map((c) =>
-              headerTh(c.name, `${c.name}${state.orderBy === c.name ? (state.dir === "asc" ? " ↑" : " ↓") : ""}`, { sortable: true }),
+              headerTh(c.name, `${c.name}${state.orderBy === c.name ? (state.dir === "asc" ? " ↑" : " ↓") : ""}`, {
+                sortable: true,
+                type: c.type || "",
+                numeric: isNumCol(c),
+              }),
             ),
           ),
         ),
@@ -894,7 +964,11 @@ function browsePane() {
       ),
     ),
     h("div", { class: "pager" },
-      h("span", {}, `${start}–${end} / ${state.total}`),
+      h("span", {}, `${start}–${end} / ${Number(state.total || 0).toLocaleString("zh-CN")}`),
+      state.selected.size
+        ? h("span", { class: "pg-sel" }, `已选 ${state.selected.size} 行`)
+        : null,
+      h("div", { class: "grow" }),
       h("button", { class: "btn", disabled: state.offset <= 0, onClick: () => { state.offset = Math.max(0, state.offset - state.limit); withBusy(loadRows); } }, "上一页"),
       h("button", { class: "btn", disabled: state.offset + state.limit >= state.total, onClick: () => { state.offset += state.limit; withBusy(loadRows); } }, "下一页"),
       h("button", { class: "btn", onClick: exportCsv }, "导出 CSV"),
@@ -903,8 +977,8 @@ function browsePane() {
 }
 
 function rowEl(row, index, cols) {
-  return h("tr", {},
-    h("td", {},
+  return h("tr", { class: state.selected.has(index) ? "sel" : "" },
+    h("td", { class: "td-select" },
       h("input", {
         type: "checkbox",
         checked: state.selected.has(index),
@@ -915,30 +989,35 @@ function rowEl(row, index, cols) {
         },
       }),
     ),
-    ...cols.map((c) => cellEl(row, index, c.name)),
+    ...cols.map((c) => cellEl(row, index, c)),
   );
 }
 
 function cellEl(row, index, col) {
-  const key = `${index}:${col}`;
+  const name = col.name;
+  const key = `${index}:${name}`;
   if (state.editing === key) {
     const input = h("input", {
-      value: row[col] == null ? "" : String(row[col]),
+      value: row[name] == null ? "" : String(row[name]),
       onKeydown: (e) => {
         if (e.key === "Enter") e.target.blur();
         if (e.key === "Escape") { state.editing = null; render(); }
       },
-      onBlur: (e) => saveCell(row, col, e.target.value),
+      onBlur: (e) => saveCell(row, name, e.target.value),
     });
     queueMicrotask(() => { input.focus(); input.select(); });
     return h("td", { class: "editing" }, input);
   }
-  const text = cellText(row[col]);
+  const text = cellText(row[name]);
+  const pill = text == null ? "" : statusClass(name, text);
+  const classes = [text == null ? "null" : "", isNumCol(col) ? "num" : ""].filter(Boolean).join(" ");
   return h("td", {
-    class: text == null ? "null" : "",
+    class: classes,
     title: cellTitle(text),
     onDblclick: () => { state.editing = key; render(); },
-  }, h("span", { class: "cell" }, text == null ? "null" : text));
+  }, pill
+    ? h("span", { class: pill }, text)
+    : h("span", { class: "cell" }, text == null ? "null" : text));
 }
 
 async function saveCell(row, col, raw) {

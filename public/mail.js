@@ -130,13 +130,12 @@ function snippet(email) {
 }
 
 export function mailView() {
-  const reading = Boolean(mail.selected);
+  bindMailKeys();
   return h("div", {
-    class: `mail-work${reading ? " reading" : ""}${mail.agentOpen && reading ? " with-agent" : ""}`,
+    class: `mail-work${mail.selected ? " reading" : ""}`,
   },
-    mailboxSide(),
-    listPane(),
-    readerPane(),
+    h("div", { class: "mail-desk" }, mailboxSide(), listPane()),
+    mail.selected ? letterOverlay() : null,
     mail.compose ? composeModal() : null,
     mail.createOpen ? createModal() : null,
     mail.settingsOpen ? settingsModal() : null,
@@ -170,10 +169,79 @@ function mailboxSide() {
           class: `table-item folder ${mail.folder === f.id && mail.mailboxId ? "active" : ""}`,
           disabled: !mail.mailboxId,
           onClick: () => { mail.offset = 0; go(`/mail/${encodeURIComponent(mail.mailboxId)}/${f.id}`); },
-        }, h("span", { class: "name" }, f.name)),
+        },
+          h("span", { class: "name" }, f.name),
+          mail.folder === f.id && mail.total > 0 ? h("span", { class: "kind" }, String(mail.total)) : null,
+        ),
       ),
     ),
   );
+}
+
+function senderName(sender) {
+  const raw = String(sender || "").trim();
+  if (!raw) return "未知发件人";
+  const named = raw.match(/^(.*?)\s*<[^>]+>\s*$/);
+  if (named && named[1].trim()) return named[1].trim().replace(/^"|"$/g, "");
+  return raw;
+}
+
+function avatarGlyph(name) {
+  const chars = [...String(name || "?").trim()];
+  return chars[0] || "?";
+}
+
+function avatarClass(name) {
+  let n = 0;
+  for (const ch of String(name || "?")) n = (n + ch.codePointAt(0)) % 6;
+  return `av av${n + 1}`;
+}
+
+function dayGroup(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "更早";
+  const start = (dt) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime();
+  const diff = Math.round((start(new Date()) - start(d)) / 86400000);
+  if (diff === 0) return "今天";
+  if (diff === 1) return "昨天";
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+function listTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return formatTime(iso);
+  const hm = d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const group = dayGroup(iso);
+  if (group === "今天" || group === "昨天") return hm;
+  return `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
+}
+
+function mailRows(emails) {
+  const nodes = [];
+  let last = "";
+  for (const email of emails) {
+    const group = dayGroup(email.date);
+    if (group !== last) {
+      nodes.push(h("div", { class: "mail-group" }, group));
+      last = group;
+    }
+    const name = senderName(email.sender);
+    nodes.push(h("button", {
+      class: `mail-item ${mail.selected?.id === email.id ? "active" : ""} ${email.read ? "" : "unread"}`,
+      onClick: () => withBusy(() => openEmail(email.id)),
+    },
+      h("span", { class: avatarClass(name), "aria-hidden": "true" }, avatarGlyph(name)),
+      h("div", { class: "mi-body" },
+        h("div", { class: "mail-item-top" },
+          h("span", { class: "mail-from" }, name),
+          h("span", { class: "mail-date" }, listTime(email.date)),
+        ),
+        h("div", { class: "mail-subject" }, email.subject || "(无主题)"),
+        h("div", { class: "mail-snippet" }, snippet(email) || " "),
+      ),
+    ));
+  }
+  return nodes;
 }
 
 function listPane() {
@@ -198,7 +266,14 @@ function listPane() {
       }, ...FOLDERS.map((f) => h("option", { value: f.id, selected: f.id === mail.folder }, f.name))),
     ),
     h("div", { class: "main-bar" },
-      h("h2", {}, folderName),
+      h("div", { class: "title" },
+        h("h2", {}, folderName),
+        mail.mailboxId
+          ? h("span", { class: "rows-total" }, mail.emails.length === mail.total
+              ? `${mail.total} 封${mail.emails.some((e) => !e.read) ? ` · ${mail.emails.filter((e) => !e.read).length} 未读` : ""}`
+              : `${mail.total} 封`)
+          : null,
+      ),
       h("div", { class: "grow" }),
       h("button", {
         class: "btn btn-primary",
@@ -217,19 +292,7 @@ function listPane() {
               ? null
               : h("button", { class: "btn btn-primary", onClick: () => { mail.createOpen = true; renderApp(); } }, "新建邮箱"),
           )
-        : mail.emails.map((email) =>
-            h("button", {
-              class: `mail-item ${mail.selected?.id === email.id ? "active" : ""} ${email.read ? "" : "unread"}`,
-              onClick: () => withBusy(() => openEmail(email.id)),
-            },
-              h("div", { class: "mail-item-top" },
-                h("span", { class: "mail-from" }, email.sender || "未知发件人"),
-                h("span", { class: "mail-date" }, formatTime(email.date)),
-              ),
-              h("div", { class: "mail-subject" }, email.subject || "(无主题)"),
-              h("div", { class: "mail-snippet" }, snippet(email) || " "),
-            ),
-          ),
+        : mailRows(mail.emails),
     ),
     h("div", { class: "pager" },
       h("span", {}, `${start}–${end} / ${mail.total}`),
@@ -251,59 +314,78 @@ function currentFolderHash() {
   return `/mail/${encodeURIComponent(mail.mailboxId)}/${mail.folder}`;
 }
 
-function readerPane() {
-  if (!mail.selected) {
-    return h("section", { class: "mail-reader" },
-      h("div", { class: "empty" },
-        h("h3", {}, "选择一封邮件"),
-        h("p", {}, "从列表打开一封。打开后可以回复或归档；Agent 会在这时出现。"),
-      ),
-    );
-  }
+function closeReader() {
+  mail.selected = null;
+  mail.thread = [];
+  mail.agentOpen = false;
+  go(currentFolderHash());
+}
+
+let mailKeysBound = false;
+function bindMailKeys() {
+  if (mailKeysBound) return;
+  mailKeysBound = true;
+  window.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (mail.compose || mail.createOpen || mail.settingsOpen) return;
+    if (!mail.selected) return;
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || document.activeElement?.isContentEditable) {
+      if (!document.activeElement.closest(".mail-letter-agent")) return;
+    }
+    e.preventDefault();
+    closeReader();
+  });
+}
+
+function letterOverlay() {
   const email = mail.selected;
-  return h("section", { class: "mail-reader" },
-    h("div", { class: "main-bar" },
-      h("button", {
-        class: "btn mail-back",
-        onClick: () => {
-          mail.selected = null;
-          mail.thread = [];
-          mail.agentOpen = false;
-          go(currentFolderHash());
-        },
-      }, "列表"),
-      h("h2", {}, email.subject || "(无主题)"),
-      h("div", { class: "grow" }),
-      h("div", { class: "mail-actions" },
-        h("button", { class: "btn btn-primary", onClick: () => openCompose({ mode: "reply", email }) }, "回复"),
-        h("button", { class: "btn btn-primary", onClick: () => moveSelected("archive") }, "归档"),
-        h("button", { class: "btn", onClick: () => openCompose({ mode: "forward", email }) }, "转发"),
-        h("button", { class: "btn btn-danger", onClick: () => moveSelected("trash") }, "删除"),
-        mail.agentOpen
-          ? null
-          : h("button", { class: "btn", onClick: () => { mail.agentOpen = true; renderApp(); } }, "Agent"),
+  return h("div", {
+    class: "mail-letter-dim",
+    onClick: (e) => { if (e.target === e.currentTarget) closeReader(); },
+  },
+    h("article", {
+      class: "mail-letter",
+      role: window.matchMedia("(max-width: 840px)").matches ? "dialog" : undefined,
+      "aria-modal": window.matchMedia("(max-width: 840px)").matches ? "true" : false,
+      "aria-labelledby": "mail-letter-title",
+    },
+      h("header", { class: "mail-letter-bar" },
+        h("button", { class: "btn", id: "mail-letter-close", onClick: closeReader }, "关闭"),
+        h("div", { class: "mail-actions" },
+          h("button", { class: "btn btn-primary", onClick: () => openCompose({ mode: "reply", email }) }, "回复"),
+          h("button", { class: "btn btn-primary", onClick: () => moveSelected("archive") }, "归档"),
+          h("button", { class: "btn", onClick: () => openCompose({ mode: "forward", email }) }, "转发"),
+          h("button", { class: "btn btn-danger", onClick: () => moveSelected("trash") }, "删除"),
+          mail.agentOpen
+            ? null
+            : h("button", { class: "btn", onClick: () => { mail.agentOpen = true; renderApp(); } }, "Agent"),
+        ),
+      ),
+      h("div", { class: "mail-letter-scroll" },
+        ...mail.thread.map((msg, i) => letterPage(msg, i === 0)),
       ),
     ),
-    h("div", { class: "mail-stage" },
-      h("div", { class: "mail-thread" },
-        ...mail.thread.map((msg) => messageCard(msg)),
-      ),
-      mail.agentOpen ? agentPane() : null,
-    ),
+    mail.agentOpen ? h("div", { class: "mail-letter-agent" }, agentPane()) : null,
   );
 }
 
-function messageCard(msg) {
+function letterPage(msg, featured) {
   const atts = msg.attachments || [];
-  return h("article", { class: "mail-card" },
-    h("div", { class: "mail-card-head" },
-      h("div", {},
-        h("div", { class: "mail-from" }, msg.sender || ""),
-        h("div", { class: "mail-meta" }, `到 ${msg.recipient || ""}`),
+  return h("section", { class: `mail-letter-page${featured ? " featured" : ""}` },
+    featured
+      ? h("h1", { id: "mail-letter-title" }, msg.subject || "(无主题)")
+      : null,
+    h("p", { class: featured ? "mail-letter-meta" : "mail-letter-meta continued" },
+      featured
+        ? h("span", { class: avatarClass(senderName(msg.sender)), "aria-hidden": "true" }, avatarGlyph(senderName(msg.sender)))
+        : null,
+      h("span", { class: "who" },
+        h("b", {}, senderName(msg.sender)),
+        h("span", { class: "to" }, ` → ${msg.recipient || ""} · ${formatTime(msg.date)}`),
       ),
-      h("div", { class: "mail-date" }, formatTime(msg.date)),
     ),
-    emailBody(msg.body || ""),
+    emailBody(msg),
     atts.length
       ? h("div", { class: "mail-atts" },
           ...atts.map((att) =>
@@ -319,17 +401,337 @@ function messageCard(msg) {
   );
 }
 
-function emailBody(html) {
+const FRAME_CSS = `
+html {
+  margin: 0;
+  padding: 0;
+  background: #fffaf6;
+  color: #2b201c;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: auto !important;
+  min-height: 0 !important;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  color: #2b201c;
+  font-family: "Figtree", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  height: auto !important;
+  min-height: 0 !important;
+}
+body.prose p { margin: 0 0 0.9em; }
+body.prose p:last-child { margin-bottom: 0; }
+img, svg, video { max-width: 100%; height: auto; }
+img[width="1"], img[height="1"], img[width="0"], img[height="0"] { display: none !important; }
+table { max-width: 100%; border-collapse: collapse; }
+td, th { overflow-wrap: break-word; }
+pre, code {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: "Red Hat Mono", "Noto Sans SC", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+}
+blockquote {
+  margin: 0.9em 0;
+  padding: 0 0 0 0.95em;
+  border-left: 2px solid #eadbd1;
+  color: #7a675f;
+}
+a { color: #0f6a62; }
+hr { border: 0; border-top: 1px solid #eadbd1; margin: 1.1em 0; }
+.gmail_signature, [data-smartmail="gmail_signature"], .mail-sig {
+  margin-top: 1.25em;
+  color: #7a675f;
+  font-size: 0.92em;
+}
+.mail-quote-wrap { margin: 1.1em 0 0; }
+.mail-quote-toggle {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 6px 0;
+  min-height: 32px;
+  color: #7a675f;
+  font: 12px/1.4 inherit;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.mail-quote-toggle::before {
+  content: "";
+  display: inline-block;
+  width: 1.5em;
+  border-top: 1px solid #eadbd1;
+  margin-right: 0.55em;
+  vertical-align: middle;
+}
+.mail-quote-toggle:hover { color: #2b201c; }
+.mail-quote-toggle:focus-visible {
+  outline: 2px solid #0f6a62;
+  outline-offset: 3px;
+}
+.mail-quote-hidden[hidden] { display: none !important; }
+`.trim();
+
+const HTML_MARK = /<(?:html|body|div|table|p|br|span|pre|blockquote|h[1-6]|ul|ol|li|a|img|center|font|strong|em|b|i|hr|style)\b/i;
+
+function looksLikeHtml(raw) {
+  const s = raw.trim();
+  return s.startsWith("<!") || s.startsWith("<?") || HTML_MARK.test(s);
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function linkify(escaped) {
+  return escaped.replace(
+    /(https?:\/\/[^\s<]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+    (match) => {
+      if (match.includes("@") && !/^https?:/i.test(match)) {
+        return `<a href="mailto:${match}">${match}</a>`;
+      }
+      const trimmed = match.replace(/[),.;:!?]+$/g, "");
+      const punct = match.slice(trimmed.length);
+      return `<a href="${trimmed}" rel="noreferrer">${trimmed}</a>${punct}`;
+    },
+  );
+}
+
+function textToProse(text) {
+  const trimmed = text.replace(/\s+$/, "").replace(/^\uFEFF/, "");
+  const sigSplit = trimmed.match(/^([\s\S]*?)\n-- \n([\s\S]+)$/);
+  const main = sigSplit ? sigSplit[1] : trimmed;
+  const sig = sigSplit ? sigSplit[2] : "";
+  const toParas = (block) => linkify(escapeHtml(block))
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
+    .join("");
+  return toParas(main) + (sig ? `<aside class="mail-sig">${toParas(sig)}</aside>` : "");
+}
+
+function cidUrls(msg) {
+  const map = new Map();
+  if (!msg?.id || !mail.mailboxId) return map;
+  for (const att of msg.attachments || []) {
+    if (!att.content_id) continue;
+    const cid = String(att.content_id).replace(/^<|>$/g, "");
+    const url = `/api/mail/mailboxes/${encodeURIComponent(mail.mailboxId)}/emails/${encodeURIComponent(msg.id)}/attachments/${encodeURIComponent(att.id)}`;
+    map.set(cid, url);
+    map.set(cid.toLowerCase(), url);
+  }
+  return map;
+}
+
+function sanitizeEmailDocument(raw, msg) {
+  const parsed = new DOMParser().parseFromString(raw, "text/html");
+  const kill = new Set([
+    "SCRIPT", "IFRAME", "OBJECT", "EMBED", "LINK", "META", "BASE",
+    "FORM", "APPLET", "FRAMESET", "FRAME", "INPUT", "BUTTON", "SELECT", "TEXTAREA",
+  ]);
+  const cids = cidUrls(msg);
+  const styles = [];
+  for (const style of [...parsed.querySelectorAll("style")]) {
+    styles.push(style.textContent || "");
+    style.remove();
+  }
+  const comments = [];
+  const walker = document.createTreeWalker(parsed, NodeFilter.SHOW_COMMENT);
+  while (walker.nextNode()) comments.push(walker.currentNode);
+  comments.forEach((node) => node.remove());
+  for (const el of [...parsed.querySelectorAll("*")]) {
+    if (kill.has(el.tagName)) {
+      el.remove();
+      continue;
+    }
+    for (const attr of [...el.attributes]) {
+      const name = attr.name.toLowerCase();
+      const val = attr.value.trim();
+      if (name.startsWith("on") || name === "srcdoc") {
+        el.removeAttribute(attr.name);
+        continue;
+      }
+      if (
+        (name === "href" || name === "src" || name === "xlink:href" || name === "action") &&
+        /^\s*(javascript|vbscript|data\s*:(?!image\/))/i.test(val)
+      ) {
+        el.removeAttribute(attr.name);
+      }
+    }
+    if (el.tagName === "IMG") {
+      const src = el.getAttribute("src") || "";
+      const cidMatch = src.match(/^cid:(.+)$/i);
+      if (cidMatch) {
+        const key = decodeURIComponent(cidMatch[1]).replace(/^<|>$/g, "");
+        const url = cids.get(key) || cids.get(key.toLowerCase());
+        if (url) el.setAttribute("src", url);
+        else el.remove();
+      }
+    }
+    if (el.tagName === "TABLE") {
+      const w = parseInt(el.getAttribute("width") || "0", 10);
+      if (w > 640) el.setAttribute("width", "100%");
+      if (el.style.width && parseInt(el.style.width, 10) > 640) el.style.width = "100%";
+    }
+  }
+  return { body: parsed.body ? parsed.body.innerHTML : raw, styles };
+}
+
+function prepareEmailHtml(raw, msg) {
+  const text = String(raw || "");
+  if (!looksLikeHtml(text)) {
+    return { kind: "prose", body: textToProse(text), styles: [] };
+  }
+  const prepared = sanitizeEmailDocument(text, msg);
+  return { kind: "html", ...prepared };
+}
+
+function fitMailFrame(iframe) {
+  try {
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+    const html = doc.documentElement;
+    const body = doc.body;
+    html.style.height = "auto";
+    html.style.minHeight = "0";
+    if (body) {
+      body.style.height = "auto";
+      body.style.minHeight = "0";
+    }
+    const height = Math.max(body?.scrollHeight || 0, body?.offsetHeight || 0, html.scrollHeight || 0);
+    iframe.style.height = `${Math.max(24, height)}px`;
+  } catch {
+    iframe.style.height = "40vh";
+  }
+}
+
+function collapseQuotes(doc, onToggle) {
+  const selectors = [
+    ".gmail_quote",
+    ".gmail_extra",
+    "#divRplyFwdMsg",
+    ".yahoo_quoted",
+    ".protonmail_quote",
+    ".moz-cite-prefix",
+    "blockquote",
+  ];
+  let root = null;
+  for (const sel of selectors) {
+    const el = doc.querySelector(sel);
+    if (el && doc.body.contains(el)) {
+      root = el;
+      break;
+    }
+  }
+  if (!root?.parentNode) return;
+  const bodyText = (doc.body.textContent || "").trim();
+  const quoteText = (root.textContent || "").trim();
+  if (!quoteText || quoteText.length < 8) return;
+  if (quoteText.length > bodyText.length * 0.85) return;
+
+  const wrap = doc.createElement("div");
+  wrap.className = "mail-quote-wrap";
+  const btn = doc.createElement("button");
+  btn.type = "button";
+  btn.className = "mail-quote-toggle";
+  btn.textContent = "显示引用的内容";
+  const hidden = doc.createElement("div");
+  hidden.className = "mail-quote-hidden";
+  hidden.hidden = true;
+  root.parentNode.insertBefore(wrap, root);
+  hidden.append(root);
+  wrap.append(btn, hidden);
+  btn.addEventListener("click", () => {
+    hidden.hidden = !hidden.hidden;
+    btn.textContent = hidden.hidden ? "显示引用的内容" : "收起引用";
+    onToggle();
+  });
+}
+
+function isNearWhite(color) {
+  const m = String(color).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (!m) return false;
+  const r = Number(m[1]);
+  const g = Number(m[2]);
+  const b = Number(m[3]);
+  const aMatch = String(color).match(/rgba\(\d+,\s*\d+,\s*\d+,\s*([0-9.]+)\)/i);
+  const a = aMatch ? Number(aMatch[1]) : 1;
+  if (a === 0) return true;
+  return r > 244 && g > 238 && b > 228;
+}
+
+function sitOnPaper(doc) {
+  const paint = (el) => {
+    if (!el) return;
+    const bg = doc.defaultView?.getComputedStyle(el).backgroundColor;
+    if (isNearWhite(bg)) el.style.setProperty("background", "transparent", "important");
+  };
+  paint(doc.body);
+  const kids = [...(doc.body?.children || [])];
+  if (kids.length && kids.length <= 4) kids.forEach(paint);
+}
+
+function enhanceMailFrame(iframe, extraStyles) {
+  const doc = iframe.contentDocument;
+  if (!doc?.body) return;
+  if (doc.body.dataset.mailEnhanced) {
+    fitMailFrame(iframe);
+    return;
+  }
+  doc.body.dataset.mailEnhanced = "1";
+  for (const css of extraStyles || []) {
+    if (!css.trim()) continue;
+    const style = doc.createElement("style");
+    style.textContent = css;
+    doc.head.append(style);
+  }
+  sitOnPaper(doc);
+  const fit = () => fitMailFrame(iframe);
+  collapseQuotes(doc, fit);
+  doc.addEventListener("click", (e) => {
+    const a = e.target.closest?.("a");
+    if (!a?.href) return;
+    if ((a.getAttribute("href") || "").startsWith("#")) return;
+    e.preventDefault();
+    window.open(a.href, "_blank", "noopener,noreferrer");
+  });
+  for (const img of doc.images) {
+    img.addEventListener("load", fit);
+    img.addEventListener("error", () => {
+      img.style.display = "none";
+      fit();
+    });
+  }
+  fit();
+  requestAnimationFrame(fit);
+  if (typeof ResizeObserver !== "undefined" && doc.body) {
+    new ResizeObserver(fit).observe(doc.body);
+  }
+}
+
+function emailBody(msg) {
+  const raw = msg.body || "";
+  if (!raw.trim()) return h("p", { class: "mail-letter-empty" }, "没有正文");
+  const prepared = prepareEmailHtml(raw, msg);
   const iframe = h("iframe", {
     class: "mail-frame",
-    sandbox: "",
+    sandbox: "allow-same-origin allow-popups allow-popups-to-escape-sandbox",
     referrerpolicy: "no-referrer",
+    title: msg.subject || "邮件正文",
   });
-  iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>
-    body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;color:#1b1b16;background:#fff;word-break:break-word}
-    img{max-width:100%;height:auto}
-    a{color:#0b57d0}
-  </style></head><body>${html}</body></html>`;
+  const kind = prepared.kind || "html";
+  iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Noto+Sans+SC:wght@400;500&family=Red+Hat+Mono:wght@400;500&display=swap"><style>${FRAME_CSS}</style></head><body class="${kind}">${prepared.body}</body></html>`;
+  iframe.addEventListener("load", () => enhanceMailFrame(iframe, prepared.styles));
   return iframe;
 }
 
